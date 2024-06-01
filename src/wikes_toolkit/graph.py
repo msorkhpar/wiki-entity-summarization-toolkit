@@ -147,8 +147,7 @@ class WikESGraph:
             raise ValueError(f"RootEntity with wikidata_id: {wikidata_id} not found")
         return self.__root_entities[wikidata_id]
 
-    def fetch_triple(self, subject_entity: Union[Entity, RootEntity, str], predicate: Union[Predicate, str],
-                     object_entity: Union[Entity, RootEntity, str]) -> Triple:
+    def fetch_triple(self, subject_entity: Union[Entity, RootEntity, str], predicate: Union[Predicate, str], object_entity: Union[Entity, RootEntity, str]) -> Triple:
         subject_entity = self.__get_entity(subject_entity)
         object_entity = self.__get_entity(object_entity)
         predicate = self.__get_predicate(predicate)
@@ -171,6 +170,10 @@ class WikESGraph:
             for u, v, data in self.__G.in_edges(entity_id, data=True)
         ])
         return neighbors
+
+    def degree(self, entity: Union[Entity, RootEntity, str]) -> int:
+        entity = self.__get_entity(entity)
+        return self.__G.degree(entity.wikidata_id)
 
     def ground_truth_summaries(self, root_entity: Union[RootEntity, str]) -> Set[Triple]:
         root_entity_id = self.__get_root_entity(root_entity).wikidata_id
