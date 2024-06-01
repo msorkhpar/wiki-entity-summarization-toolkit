@@ -2,11 +2,17 @@ from __future__ import annotations
 
 import os
 from abc import abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 
 
+@dataclass
+class DatasetVersion:
+    base_url: str
+
+
 class DatasetName(Enum):
-    def get_dataset_path(self, base_path: str | os.path) -> str:
+    def get_dataset_path(self, base_path: str | os.PathLike) -> str:
         return os.path.join(base_path, self.value + ".pkl")
 
     @abstractmethod
@@ -14,7 +20,7 @@ class DatasetName(Enum):
         pass
 
 
-class V1:
+class V1(DatasetVersion):
     base_url = 'https://github.com/msorkhpar/wiki-entity-summarization/releases/download/v1.0/'
 
     @staticmethod

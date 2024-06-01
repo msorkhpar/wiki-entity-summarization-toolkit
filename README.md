@@ -12,8 +12,9 @@ pip install wikes-toolkit
 
 ## Available methods:
 
-![Toolkit methods](toolkit.png)
-![Graph methods](graph.png)
+![BaseClasses.png](diagrams/BaseClasses.png)
+![WikESGraph.png](diagrams/WikESGraph.png)
+![WikESToolkit.png](diagrams/WikESToolkit.png)
 
 ## Usage
 
@@ -87,6 +88,11 @@ for root in G.root_entities():
     ('Jailhouse Rock'= cast member => Elvis Presley)
     ('Love Me Tender'= cast member => Elvis Presley)
 """
+
+for dataset_name, G in toolkit.load_all_graphs(V1):
+    print(f"Dataset [{dataset_name}:")
+    print(G.root_entities())
+
 ```
 
 ## Project Details
