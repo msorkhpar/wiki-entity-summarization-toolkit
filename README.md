@@ -14,6 +14,7 @@ pip install wikes-toolkit
 
 ![BaseClasses.png](diagrams/BaseClasses.png)
 ![WikESGraph.png](diagrams/WikESGraph.png)
+![Version.png](diagrams/Version.png)
 ![WikESToolkit.png](diagrams/WikESToolkit.png)
 
 ## Usage
@@ -22,18 +23,13 @@ pip install wikes-toolkit
 from wikes_toolkit import WikESToolkit, V1
 
 toolkit = WikESToolkit()
-G = toolkit.load_graph(V1.First.SMALL_FULL)
-
-root_nodes = G.root_entities()
-nodes = G.entities()
-edges = G.triples()
-labels = G.predicates()
-number_of_nodes = G.count_entities()
-number_of_edges = G.count_triples()
-node = G.fetch_entity('Q303')
-
-toolkit = WikESToolkit()
-G = toolkit.load_graph(V1.First.SMALL_FULL)
+G = toolkit.load_graph(
+    V1.First.SMALL_FULL,
+    entity_formatter=lambda e: f"Entity({e.wikidata_label})",
+    predicate_formatter=lambda p: f"Predicate({p.label})",
+    triple_formatter=lambda
+        t: f"({t.subject_entity.wikidata_label})-[{t.predicate.label}]-> ({t.object_entity.wikidata_label})"
+)   
 
 root_nodes = G.root_entities()
 nodes = G.entities()
@@ -54,40 +50,37 @@ G.mark_triple_as_summary(root_nodes[0], edges[0])
 
 
 for root in G.root_entities():
-    print(f"Neighbors of [{root.wikidata_label}]:")
-    for edge in G.neighbors(root):
-        print(
-            f"('{edge.subject_entity.wikidata_label}'= {edge.predicate.predicate_label} => {edge.object_entity.wikidata_label})")
+    print(f"Neighbors of [{root}]:")
+    for triple in G.neighbors(root):
+        print(triple)
 
     for _ in range(5):
         print("*" * 40)
 
     print("Ground truth summaries:")
     for summary in G.ground_truth_summaries(root):
-        print(
-            f"('{summary.subject_entity.wikidata_label}'= {summary.predicate.predicate_label} => {summary.object_entity.wikidata_label})")
+        print(summary)
     G.mark_triples_as_summaries(root, G.neighbors(root))
     break
 
 """ Output of the above code:
-    Neighbors of [Elvis Presley]:
-    ('Elvis Presley'= military unit => 32nd Cavalry Regiment)
-    ('Elvis Presley'= genre => blues)
-    ...
-    ('Jim Morrison'= influenced by => Elvis Presley)
-    ('Elvis Country – I'm 10,000 Years Old'= performer => Elvis Presley)
-    ('The King'= main subject => Elvis Presley)
-    ********************
-    Ground truth summaries:
-    ('Elvis Presley'= record label => Sun Records)
-    ('Military career of Elvis Presley'= facet of => Elvis Presley)
-    ('Elvis Presley'= military unit => 32nd Cavalry Regiment)
-    ...
-    ('Heartbreak Hotel'= lyrics by => Elvis Presley)
-    ('Lisa Marie Presley'= father => Elvis Presley)
-    ('Elvis Presley'= military rank => sergeant)
-    ('Jailhouse Rock'= cast member => Elvis Presley)
-    ('Love Me Tender'= cast member => Elvis Presley)
+Neighbors of [Entity(Elvis Presley)]:
+(Elvis Presley)-[military unit]-> (32nd Cavalry Regiment)
+(Elvis Presley)-[genre]-> (blues)
+...
+(Jim Morrison)-[influenced by]-> (Elvis Presley)
+(Elvis Country – I'm 10,000 Years Old)-[performer]-> (Elvis Presley)
+(The King)-[main subject]-> (Elvis Presley)
+****************************************
+Ground truth summaries:
+(Elvis Presley)-[genre]-> (rockabilly)
+(Million Dollar Quartet)-[has part(s)]-> (Elvis Presley)
+(Jailhouse Rock)-[cast member]-> (Elvis Presley)
+...
+(Viva Las Vegas)-[cast member]-> (Elvis Presley)
+(Elvis Presley)-[genre]-> (rhythm and blues)
+(Elvis Presley)-[record label]-> (Sun Records)
+(Elvis Presley)-[genre]-> (pop music)
 """
 
 for dataset_name, G in toolkit.load_all_graphs(V1):

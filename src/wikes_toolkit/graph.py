@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
-from typing import Optional, Union, Dict, Tuple, Set, List
+from dataclasses import dataclass, field
+from typing import Optional, Union, Dict, Tuple, Set, List, Callable
 
 import networkx as nx
 
@@ -14,17 +14,35 @@ class Entity:
     wikidata_description: Optional[str] = None
     wikipdia_id: Optional[int] = None
     wikipdia_title: Optional[str] = None
+    str_formatter: Optional[Callable[[Entity], str]] = field(default=None, repr=False)
+
+    def __str__(self):
+        if self.str_formatter:
+            return self.str_formatter(self)
+        return f"Entity(wikidata_id={self.wikidata_id}, wikidata_label={self.wikidata_label})"
+
 
 @dataclass
 class RootEntity(Entity):
     category: Optional[str] = None
 
+    def __str__(self):
+        if self.str_formatter:
+            return self.str_formatter(self)
+        return f"RootEntity(wikidata_id={self.wikidata_id}, wikidata_label={self.wikidata_label})"
+
 
 @dataclass
 class Predicate:
     predicate_id: str
-    predicate_label: Optional[str] = None
-    predicate_description: Optional[str] = None
+    label: Optional[str] = None
+    description: Optional[str] = None
+    str_formatter: Optional[Callable[[Predicate], str]] = field(default=None, repr=False)
+
+    def __str__(self):
+        if self.str_formatter:
+            return self.str_formatter(self)
+        return f"Predicate(predicate_id={self.predicate_id}, label={self.label})"
 
 
 @dataclass
@@ -32,13 +50,20 @@ class Triple:
     subject_entity: Union[Entity, RootEntity]
     predicate: Predicate
     object_entity: Union[Entity, RootEntity]
+    str_formatter: Optional[Callable[[Triple], str]] = field(default=None, repr=False)
+
+    def __str__(self):
+        if self.str_formatter:
+            return self.str_formatter(self)
+        return f"Triple(({self.subject_entity.wikidata_id})-[{self.predicate.predicate_id}]->({self.object_entity.wikidata_id})"
 
     def __hash__(self):
         return hash((self.subject_entity.wikidata_id, self.predicate.predicate_id, self.object_entity.wikidata_id))
 
 
 class WikESGraph:
-    def __init__(self, G: nx.MultiDiGraph):
+    def __init__(self, G: nx.MultiDiGraph, entity_formatter: Optional[callable] = None, predicate_formatter: Optional[callable] = None, triple_formatter: Optional[callable] = None
+    ):
         self.__entities: Dict[str, Entity] = {}
         self.__root_entities: Dict[str, RootEntity] = {}
         self.__predicates: Dict[str, Predicate] = {}
@@ -46,6 +71,9 @@ class WikESGraph:
         self.__ground_truths: Dict[str, Set[Triple]] = defaultdict(set)
         self.__predicted_summaries: Dict[str, Set[Triple]] = defaultdict(set)
         self.__G: nx.MultiDiGraph = G
+        self.__entity_formatter = entity_formatter
+        self.__predicate_formatter = predicate_formatter
+        self.__triple_formatter = triple_formatter
         self.__initialize()
 
     def __initialize(self):
@@ -57,7 +85,8 @@ class WikESGraph:
                     wikidata_description=data.get('wikidata_desc'),
                     wikipdia_id=data.get('wikipedia_id'),
                     wikipdia_title=data.get('wikipedia_title'),
-                    category=data.get('category')
+                    category=data.get('category'),
+                    str_formatter=self.__entity_formatter
                 )
                 self.__root_entities[node] = root_entity
                 self.__entities[node] = root_entity
@@ -68,6 +97,7 @@ class WikESGraph:
                     wikidata_description=data.get('wikidata_desc'),
                     wikipdia_id=data.get('wikipedia_id'),
                     wikipdia_title=data.get('wikipedia_title'),
+                    str_formatter=self.__entity_formatter
                 )
                 self.__entities[node] = entity
 
@@ -76,14 +106,16 @@ class WikESGraph:
             if predicate_id not in self.__predicates:
                 self.__predicates[predicate_id] = Predicate(
                     predicate_id=predicate_id,
-                    predicate_label=data.get('predicate_label'),
-                    predicate_description=data.get('predicate_desc')
+                    label=data.get('predicate_label'),
+                    description=data.get('predicate_desc'),
+                    str_formatter=self.__predicate_formatter
                 )
 
             triple = Triple(
                 subject_entity=self.__entities[u],
                 predicate=self.__predicates[predicate_id],
-                object_entity=self.__entities[v]
+                object_entity=self.__entities[v],
+                str_formatter=self.__triple_formatter
             )
             self.__triples[(u, predicate_id, v)] = triple
             if 'summary_for' in data:

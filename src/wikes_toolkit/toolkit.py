@@ -4,7 +4,7 @@ import os
 import pickle
 import inspect
 from pathlib import Path
-from typing import Type, Union, Dict, List, Tuple
+from typing import Type, Union, Dict, List, Tuple, Optional
 
 import networkx as nx
 import requests
@@ -27,7 +27,8 @@ class WikESToolkit:
         url = dataset.get_dataset_url()
         response = requests.get(url, stream=True)
         if response.status_code != 200:
-            raise Exception(f"Failed to download dataset [{dataset}] from {url}. HTTP Status Code: {response.status_code}")
+            raise Exception(
+                f"Failed to download dataset [{dataset}] from {url}. HTTP Status Code: {response.status_code}")
 
         total_size = int(response.headers.get('content-length', 0))
         dataset_path = self.save_path / f"{dataset.value}.pkl"
@@ -43,7 +44,7 @@ class WikESToolkit:
                 file.write(data)
                 bar.update(len(data))
 
-    def load_graph(self, dataset: DatasetName) -> WikESGraph:
+    def load_graph(self, dataset: DatasetName, entity_formatter: Optional[callable] = None, predicate_formatter: Optional[callable] = None, triple_formatter: Optional[callable] = None) -> WikESGraph:
         if not isinstance(dataset, DatasetName):
             raise ValueError("Please use a valid dataset version class.")
 
@@ -53,7 +54,7 @@ class WikESToolkit:
 
         with open(dataset_path, 'rb') as f:
             G: nx.MultiDiGraph = pickle.load(f)
-        return WikESGraph(G)
+        return WikESGraph(G, entity_formatter, predicate_formatter, triple_formatter)
 
     def load_all_graphs(self, dataset_version: Type[DatasetVersion]) -> Dict[DatasetName, WikESGraph]:
         if not issubclass(dataset_version, DatasetVersion):
