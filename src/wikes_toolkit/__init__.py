@@ -1,3 +1,5 @@
 from .toolkit import WikESToolkit
 from .versions import V1
-from .graph import WikESGraph, RootEntity, Entity, Triple, Predicate
+from .wikies_graph_components import RootEntity, Entity, Triple, Predicate
+from .oo_graph import WikESGraph
+from .pandas_graph import PandasWikESGraph

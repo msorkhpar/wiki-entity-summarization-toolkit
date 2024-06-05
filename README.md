@@ -4,6 +4,11 @@ A user-friendly toolkit for the Wiki-Entity-Summarization (WikES) datasets.
 It provides functionalities for downloading, loading, and working with 48 pre-generated graph datasets, as well as
 evaluating predictions against the ground truth.
 
+## Parent project
+
+This toolkit is part of
+the [Wiki-Entity-Summarization project (WikES)](https://github.com/msorkhpar/wiki-entity-summarization).
+
 ## Installation
 
 ```bash
@@ -12,42 +17,43 @@ pip install wikes-toolkit
 
 ## Available methods:
 
-![BaseClasses.png](diagrams/BaseClasses.png)
-![WikESGraph.png](diagrams/WikESGraph.png)
+![WikESGraph.png](diagrams/ObjectOrientedBasedWikESGraph.png)
+![PandasWikESGraph.png](diagrams/PandasBasedWikESGraph.png)
 ![Version.png](diagrams/Version.png)
 ![WikESToolkit.png](diagrams/WikESToolkit.png)
 
 ## Usage
 
 ```python
-from wikes_toolkit import WikESToolkit, V1
+from wikes_toolkit import WikESToolkit, V1, WikESGraph
 
-toolkit = WikESToolkit()
+toolkit = WikESToolkit(save_path="./data")  # save_path is optional
 G = toolkit.load_graph(
+    WikESGraph,
     V1.First.SMALL_FULL,
     entity_formatter=lambda e: f"Entity({e.wikidata_label})",
     predicate_formatter=lambda p: f"Predicate({p.label})",
     triple_formatter=lambda
         t: f"({t.subject_entity.wikidata_label})-[{t.predicate.label}]-> ({t.object_entity.wikidata_label})"
-)   
+)
 
 root_nodes = G.root_entities()
 nodes = G.entities()
 edges = G.triples()
 labels = G.predicates()
-number_of_nodes = G.count_entities()
-number_of_edges = G.count_triples()
+number_of_nodes = G.total_entities()
+number_of_directed_edges = G.total_triples()
 node = G.fetch_entity('Q303')
 node_degree = G.degree('Q303')
-neighbors = G.neighbors(node)
+neighbors = G.ground_truths(node)
 # or  G.neighbors('Q303')
-ground_truth_summaries = G.ground_truth_summaries(root_nodes[0])
+ground_truth_summaries = G.ground_truths(root_nodes[0])
 # or G.ground_truth_summaries('Q303')
 G.mark_triple_as_summary(root_nodes[0], edges[0])
 # or G.mark_triple_as_summary(root_nodes[0], ('Q303', 'P241', 'Q9212'))
 # or G.mark_triple_as_summary('Q303', ('Q303', 'P264', 'Q898618'))
 # or G.mark_triples_as_summaries(root_nodes[1], [G.neighbors(root_nodes[1])[0], G.neighbors(root_nodes[1])[1]])
-
+print(f"MAP is {toolkit.MAP(G)}")
 
 for root in G.root_entities():
     print(f"Neighbors of [{root}]:")
@@ -58,7 +64,7 @@ for root in G.root_entities():
         print("*" * 40)
 
     print("Ground truth summaries:")
-    for summary in G.ground_truth_summaries(root):
+    for summary in G.ground_truths(root):
         print(summary)
     G.mark_triples_as_summaries(root, G.neighbors(root))
     break
@@ -83,16 +89,39 @@ Ground truth summaries:
 (Elvis Presley)-[genre]-> (pop music)
 """
 
-for dataset_name, G in toolkit.load_all_graphs(V1):
+for dataset_name, G in toolkit.load_all_graphs(WikESGraph, V1):
     print(f"Dataset [{dataset_name}:")
     print(G.root_entities())
 
 ```
 
-## Project Details
+There is another version of this toolkit that uses Pandas DataFrame to store the graph data. To use this version, you 
+can change the first parameter of the `load_graph` method to `PandasWikESGraph`:
+```python
+from wikes_toolkit import WikESToolkit, V1, PandasWikESGraph
 
-This toolkit is part of
-the [Wiki-Entity-Summarization project (WikES)](https://github.com/msorkhpar/wiki-entity-summarization).
+toolkit = WikESToolkit()
+G = toolkit.load_graph(PandasWikESGraph, V1.First.SMALL_FULL, entity_formatter=lambda e: e.wikidata_id)
+
+root_nodes = G.root_entities()
+first_root_node = G.root_entity_ids()[0]
+nodes = G.entities()
+edges = G.triples()
+labels = G.predicates()
+number_of_nodes = G.total_entities()
+number_of_directed_edges = G.total_triples()
+node = G.fetch_entity('Q303')
+node_degree = G.degree('Q303')
+ground_truths = G.ground_truths(node)
+neighbors = G.neighbors(node)
+# or  G.neighbors('Q303')
+ground_truth_summaries = G.ground_truths(first_root_node)
+# or G.ground_truths('Q303')
+G.mark_triple_as_summary(first_root_node, (edges.iloc[0]['subject'], edges.iloc[0]['predicate'], edges.iloc[0]['object']))
+# or G.mark_triple_as_summary('Q303', ('Q303', 'P264', 'Q898618'))
+print(f"MAP is {toolkit.MAP(G)}")
+
+```
 
 ## License
 
