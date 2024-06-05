@@ -21,7 +21,7 @@ class DatasetName(Enum):
 
 
 class V1(DatasetVersion):
-    base_url = 'https://github.com/msorkhpar/wiki-entity-summarization/releases/download/v1.0/'
+    base_url = 'https://github.com/msorkhpar/wiki-entity-summarization/releases/download/1.0.4/'
 
     @staticmethod
     def get_dataset_url(dataset: DatasetName) -> str:
