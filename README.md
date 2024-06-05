@@ -17,10 +17,10 @@ pip install wikes-toolkit
 
 ## Available methods:
 
-![WikESGraph.png](https://github.com/msorkhpar/wiki-entity-summarization-toolkit/diagrams/ObjectOrientedBasedWikESGraph.png)
-![PandasWikESGraph.png](https://github.com/msorkhpar/wiki-entity-summarization-toolkit/diagrams/PandasBasedWikESGraph.png)
-![Version.png](https://github.com/msorkhpar/wiki-entity-summarization-toolkit/diagrams/Version.png)
-![WikESToolkit.png](https://github.com/msorkhpar/wiki-entity-summarization-toolkit/diagrams/WikESToolkit.png)
+![WikESGraph.png](https://github.com/msorkhpar/wiki-entity-summarization-toolkit/blob/main/diagrams/ObjectOrientedBasedWikESGraph.png)
+![PandasWikESGraph.png](https://github.com/msorkhpar/wiki-entity-summarization-toolkit/blob/main/diagrams/PandasBasedWikESGraph.png)
+![Version.png](https://github.com/msorkhpar/wiki-entity-summarization-toolkit/blob/main/diagrams/Version.png)
+![WikESToolkit.png](https://github.com/msorkhpar/wiki-entity-summarization-toolkit/blob/main/diagrams/WikESToolkit.png)
 
 ## Usage
 
