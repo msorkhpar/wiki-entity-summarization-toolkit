@@ -23,12 +23,6 @@ class ESBMVersions(DatasetVersion):
     def get_dataset_url(dataset: DatasetName) -> str:
         return ESBMVersions.base_url + dataset.value + ".pkl"
 
-    class V0(DatasetName):
-        DBPEDIA_FULL = 'v0_dbpedia_full'
-
-        def get_dataset_url(self):
-            return ESBMVersions.get_dataset_url(self)
-
     class V1Dot0(DatasetName):
         DBPEDIA_FULL = 'v1_0_dbpedia_full'
         LMDB_FULL = 'v1_0_lmdb_full'
