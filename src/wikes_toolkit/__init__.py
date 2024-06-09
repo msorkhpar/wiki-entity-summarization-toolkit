@@ -1,5 +1,10 @@
 from .toolkit import WikESToolkit
-from .versions import V1
-from .wikies_graph_components import RootEntity, Entity, Triple, Predicate
-from .oo_graph import WikESGraph
-from .pandas_graph import PandasWikESGraph
+
+from wikes_toolkit.esbm.esbm_versions import ESBMVersions
+from wikes_toolkit.esbm.esbm_graph import ESBMGraph
+from wikes_toolkit.esbm.esbm_graph_components import ESBMEntity, ESBMPredicate, ESBMRootEntity
+
+from wikes_toolkit.wikes.wikes_versions import WikESVersions
+from wikes_toolkit.wikes.wikes_graph import WikESGraph
+from wikes_toolkit.wikes.wikes_pandas_graph import PandasWikESGraph
+from wikes_toolkit.wikes.wikies_graph_components import WikiEntity, WikiPredicate, WikiRootEntity
