@@ -1,6 +1,6 @@
 # wiki-entity-summarization-toolkit
 
-![PyPI - Status](https://img.shields.io/pypi/status/wikes-toolkit)![PyPI - Downloads](https://img.shields.io/pypi/dm/wikes-toolkit)![GitHub License](https://img.shields.io/github/license/msorkhpar/wikies-toolkit)
+![PyPI - Status](https://img.shields.io/pypi/status/wikes-toolkit)![PyPI - Downloads](https://img.shields.io/pypi/dm/wikes-toolkit)![GitHub License](https://img.shields.io/github/license/msorkhpar/wiki-entity-summarization-toolkit)
 
 A user-friendly toolkit for the Wiki-Entity-Summarization (WikES) datasets.
 It provides functionalities for downloading, loading, and working with 48 pre-generated graph datasets, as well as
