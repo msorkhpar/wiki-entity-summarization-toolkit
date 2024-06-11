@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple
 
+# We have used https://github.com/nju-websoft/ESBM/blob/master/v1.2/Evaluator/esummeval-src_v1.2.jar source code
 
 class ESBMSummaryEvaluator:
     def __init__(self, root_entities: List[str], gold_summaries: Dict[str, List[List[Tuple[str, str, str]]]],

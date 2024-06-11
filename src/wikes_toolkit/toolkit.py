@@ -13,6 +13,7 @@ from tqdm import tqdm
 
 from wikes_toolkit.esbm.esbm_eval import ESBMSummaryEvaluator
 from wikes_toolkit.esbm.esbm_graph_components import ESBMBaseGraph
+from wikes_toolkit.esbm.esbm_pandas_graph import PandasESBMGraph
 from wikes_toolkit.wikes.wikes_versions import WikESVersions
 from wikes_toolkit.esbm.esbm_versions import ESBMVersions
 
@@ -79,6 +80,7 @@ class WikESToolkit:
             self,
             implementation_class: Type[T],
             dataset: DatasetName,
+            root_entity_formatter: Optional[callable] = None,
             entity_formatter: Optional[Callable] = None,
             predicate_formatter: Optional[Callable] = None,
             triple_formatter: Optional[Callable] = None) -> T:
@@ -93,6 +95,8 @@ class WikESToolkit:
         if issubclass(implementation_class, WikESGraph):
             if not isinstance(dataset, DatasetName):
                 raise ValueError("Please use a valid dataset version class.")
+            if root_entity_formatter is not None and not isinstance(root_entity_formatter, types.FunctionType):
+                raise ValueError("Please provide a valid root entity formatter functon.")
             if entity_formatter is not None and not isinstance(entity_formatter, types.FunctionType):
                 raise ValueError("Please provide a valid entity formatter functon.")
             if predicate_formatter is not None and not isinstance(predicate_formatter, types.FunctionType):
@@ -117,11 +121,17 @@ class WikESToolkit:
             logger.debug(f"Graph [{dataset}] file loaded successfully.")
 
         if issubclass(implementation_class, WikESGraph):
-            return WikESGraph(G, entity_formatter, predicate_formatter, triple_formatter)
+            return WikESGraph(
+                G,
+                dataset,
+                root_entity_formatter, entity_formatter, predicate_formatter, triple_formatter
+            )
         elif issubclass(implementation_class, PandasWikESGraph):
-            return PandasWikESGraph(G)
+            return PandasWikESGraph(G, dataset)
         elif issubclass(implementation_class, ESBMGraph):
-            return ESBMGraph(G, dataset, entity_formatter, predicate_formatter, triple_formatter)
+            return ESBMGraph(G, dataset, root_entity_formatter, entity_formatter, predicate_formatter, triple_formatter)
+        elif issubclass(implementation_class, PandasESBMGraph):
+            return PandasESBMGraph(G, dataset)
         else:
             raise ValueError("Please provide a valid Graph class.")
 
@@ -131,19 +141,17 @@ class WikESToolkit:
                         entity_formatter: Optional[callable] = None,
                         predicate_formatter: Optional[callable] = None,
                         triple_formatter: Optional[callable] = None
-                        ) -> Dict[DatasetName, T]:
+                        ) -> Tuple[DatasetName, T]:
         if not issubclass(dataset_version, DatasetVersion):
             raise ValueError("Please use one of the provided version classes.")
 
-        datasets = {}
         for name, obj in inspect.getmembers(dataset_version):
             if inspect.isclass(obj) and issubclass(obj, DatasetName):
                 for enum_member in obj:
-                    datasets[enum_member] = self.load_graph(
+                    yield enum_member, self.load_graph(
                         implementation_class, enum_member, entity_formatter,
                         predicate_formatter, triple_formatter
                     )
-        return datasets
 
     @staticmethod
     def F1(
@@ -198,7 +206,7 @@ class WikESToolkit:
             prec_sum = 0
             num_hits = 0
 
-            for i, triple in enumerate(G.predication_for_root(root_entity_id), start=1):
+            for i, triple in enumerate(G.predications_for_root(root_entity_id), start=1):
                 if triple in ground_truth_triples:
                     num_hits += 1
                     prec_sum += num_hits / i

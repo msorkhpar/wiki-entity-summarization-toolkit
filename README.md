@@ -31,7 +31,7 @@ from wikes_toolkit import WikESToolkit, WikESVersions, WikESGraph
 toolkit = WikESToolkit(save_path="./data")  # save_path is optional
 G = toolkit.load_graph(
     WikESGraph,
-    WikESVersions.V1.First.SMALL_FULL,
+    WikESVersions.V1.WikiLitArt.SMALL_FULL,
     entity_formatter=lambda e: f"Entity({e.wikidata_label})",
     predicate_formatter=lambda p: f"Predicate({p.label})",
     triple_formatter=lambda
@@ -105,12 +105,13 @@ can change the first parameter of the `load_graph` method to `PandasWikESGraph`:
 from wikes_toolkit import WikESToolkit, PandasWikESGraph, WikESVersions
 
 toolkit = WikESToolkit()
-G = toolkit.load_graph(PandasWikESGraph, WikESVersions.V1.First.SMALL_FULL, entity_formatter=lambda e: e.id)
+G = toolkit.load_graph(PandasWikESGraph, WikESVersions.V1.WikiLitArt.SMALL_FULL, entity_formatter=lambda e: e.id)
 
 root_nodes = G.root_entities()
 first_root_node = G.root_entity_ids()[0]
 nodes = G.entities()
 edges = G.triples()
+first_edge = G.fetch_triple(edges.iloc[0])
 labels = G.predicates()
 number_of_nodes = G.total_entities()
 number_of_directed_edges = G.total_triples()
@@ -124,9 +125,28 @@ ground_truth_summaries = G.ground_truths(first_root_node)
 G.mark_triple_as_summary(first_root_node,
                          (edges.iloc[0]['subject'], edges.iloc[0]['predicate'], edges.iloc[0]['object']))
 # or G.mark_triple_as_summary('Q303', ('Q303', 'P264', 'Q898618'))
+G.mark_triples_as_summaries(first_root_node, first_edge)
+
 print(f"MAP is {toolkit.MAP(G)}")
 
 ```
+
+### Export WikESGraphs as CSV files
+
+You can export the graphs as CSV files using the `export_as_csv` method. This method exports the graph as three CSV
+files:
+
+```python
+from wikes_toolkit import WikESToolkit, WikESVersions, PandasWikESGraph
+
+toolkit = WikESToolkit()
+
+for dataset, G in toolkit.load_all_graphs(PandasWikESGraph, WikESVersions.V1):
+    G.export_as_csv("./data")
+```
+
+**Note: This method has been implemented for WikESPandasGraph, others yet to be implemented.**
+
 
 ## ESBM
 
@@ -286,6 +306,35 @@ G.mark_triples_as_summaries(
 
 print(f"F1@5 is {toolkit.F1(G)}")
 print(f"F1@10 is {toolkit.F1(G, k=10)}")
+```
+
+
+### ESBM Pandas usage
+
+For Pandas version of ESBM datasets, you can use `PandasESBMGraph` instead of `ESBMGraph`:
+
+```python
+from wikes_toolkit import WikESToolkit, PandasESBMGraph, ESBMVersions
+
+toolkit = WikESToolkit()
+G = toolkit.load_graph(PandasESBMGraph, ESBMVersions.V1Dot2.DBPEDIA_FULL, entity_formatter=lambda e: e.id)
+
+first_root_node_id = G.root_entity_ids()[0]
+root_nodes = G.root_entities()
+first_root_node = G.root_entities().iloc[0]
+nodes = G.entities()
+edges = G.triples()
+labels = G.predicates()
+number_of_nodes = G.total_entities()
+number_of_directed_edges = G.total_triples()
+node = G.fetch_entity('http://dbpedia.org/resource/Adrian_Griffin')
+node_degree = G.degree('http://dbpedia.org/resource/Adrian_Griffin')
+gold_top5_0 = G.gold_top_5(node, 0)
+gold_top10_0 = G.gold_top_10(node, 0)
+neighbors = G.neighbors(node)
+all_golds = G.all_gold_top_k(5)
+golds = G.gold_top_5(G.root_entities().iloc[0], 4)
+
 ```
 
 ## License

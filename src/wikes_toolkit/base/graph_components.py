@@ -9,6 +9,8 @@ from typing import Optional, Union, Dict, Tuple, Callable, List, TypeVar, Type
 import networkx as nx
 import pandas as pd
 
+from wikes_toolkit.base.versions import DatasetName
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,6 +34,7 @@ class Entity:
 @dataclass
 class RootEntity(Entity):
     category: Optional[str] = None
+    str_formatter: Optional[Callable[[RootEntity], str]] = field(default=None, repr=False)
 
     def __str__(self):
         if self.str_formatter:
@@ -98,6 +101,7 @@ P = TypeVar('P', bound=Predicate)
 
 
 class BaseESGraph(ABC):
+    _dataset_name: DatasetName
     _entities: Union[Dict[str, Entity], pd.DataFrame]
     _root_entities: Union[Dict[str, RootEntity], pd.DataFrame]
     _predicates: Union[Dict[str, Predicate], pd.DataFrame]
@@ -105,18 +109,25 @@ class BaseESGraph(ABC):
     _ground_truths: Union[Dict[str, List[Tuple[str, str, str]]], pd.DataFrame]
     _predicted_summaries: Dict[str, List[Tuple[str, str, str]]] = defaultdict(list)
     _G: nx.MultiDiGraph
+    _root_entity_formatter: Callable
     _entity_formatter: Callable
     _predicate_formatter: Callable
     _triple_formatter = Callable
 
-    def __init__(self, G: nx.MultiDiGraph, root_type: Type, entity_type: Type, predicate_type: Type, triple_type: Type,
-                 entity_formatter: Optional[callable] = None, predicate_formatter: Optional[callable] = None,
+    def __init__(self, G: nx.MultiDiGraph, dataset: DatasetName,
+                 root_type: Type, entity_type: Type,
+                 predicate_type: Type, triple_type: Type,
+                 root_entity_formatter: Optional[callable] = None,
+                 entity_formatter: Optional[callable] = None,
+                 predicate_formatter: Optional[callable] = None,
                  triple_formatter: Optional[callable] = None):
         self._G: nx.MultiDiGraph = G
+        self._dataset_name = dataset
         self._root_type = root_type
         self._entity_type = entity_type
         self._predicate_type = predicate_type
         self._triple_type = triple_type
+        self._root_entity_formatter = root_entity_formatter
         self._entity_formatter = entity_formatter
         self._predicate_formatter = predicate_formatter
         self._triple_formatter = triple_formatter
@@ -173,7 +184,7 @@ class BaseESGraph(ABC):
             return len(self._triples)
 
     @abstractmethod
-    def fetch_entity(self, entity: Union[Entity, str]):
+    def fetch_entity(self, entity: Union[Entity, str, pd.Series]):
 
         if isinstance(self._entities, pd.DataFrame):
             try:
@@ -192,7 +203,7 @@ class BaseESGraph(ABC):
         return self._entities[identifier]
 
     @abstractmethod
-    def fetch_root_entity(self, entity: Union[RootEntity, str]):
+    def fetch_root_entity(self, entity: Union[RootEntity, str, pd.Series]):
         if isinstance(self._root_entities, pd.DataFrame):
             try:
                 if isinstance(entity, pd.Series):
@@ -213,13 +224,15 @@ class BaseESGraph(ABC):
                 raise ValueError(f"Entity with identifier: {identifier} not found in root entities.")
             return self._root_entities[identifier]
 
-    def fetch_root_entity_id(self, entity: Union[RootEntity, str]) -> str:
+    def fetch_root_entity_id(self, entity: Union[RootEntity, str, pd.Series]) -> str:
         return self.fetch_root_entity(entity).identifier
 
     @abstractmethod
-    def fetch_predicate(self, predicate: Union[Predicate, str]):
+    def fetch_predicate(self, predicate: Union[Predicate, str, pd.Series]):
         if isinstance(self._predicates, pd.DataFrame):
             try:
+                if isinstance(predicate, pd.Series):
+                    predicate = predicate.name
                 predicate = self._predicates.loc[predicate]
             except KeyError:
                 raise ValueError(f"Predicate with predicate_id: {predicate} not found")
@@ -241,9 +254,11 @@ class BaseESGraph(ABC):
             Union[Predicate, str],
             Union[Entity, str]
         ],
-
+        pd.Series
     ]):
         if isinstance(self._triples, pd.DataFrame):
+            if isinstance(triple, pd.Series):
+                triple = triple['subject'], triple['predicate'], triple['object']
             triple = self._triples[
                 (self._triples['subject'] == triple[0]) &
                 (self._triples['predicate'] == triple[1]) &
@@ -273,7 +288,8 @@ class BaseESGraph(ABC):
             Union[Entity, str],
             Union[Predicate, str],
             Union[Entity, str]
-        ]
+        ],
+        pd.Series
     ]) -> Tuple[str, str, str]:
         if isinstance(self._triples, pd.DataFrame):
             return self.fetch_triple(triple)[['subject', 'predicate', 'object']].apply(tuple, axis=1)
@@ -282,7 +298,7 @@ class BaseESGraph(ABC):
             return triple.subject_entity.identifier, triple.predicate.predicate_id, triple.object_entity.identifier
 
     @abstractmethod
-    def neighbors(self, entity: Union[Entity, str]):
+    def neighbors(self, entity: Union[Entity, str, pd.Series]):
         if isinstance(self._entities, pd.DataFrame):
             entity = self.fetch_entity(entity)
             return self._triples[
@@ -302,33 +318,37 @@ class BaseESGraph(ABC):
             ])
             return neighbors
 
-    def degree(self, entity: Union[Entity, str]) -> int:
+    def degree(self, entity: Union[Entity, str, pd.Series]) -> int:
         if isinstance(self._entities, pd.DataFrame):
             return self.neighbors(entity).shape[0]
         else:
             entity = self.fetch_entity(entity)
             return self._G.degree(entity.identifier)
 
-    def mark_triple_as_summary(self, root_entity: Union[RootEntity, str], triple: Union[
-        Triple, Tuple[
+    def _add_predication_if_not_exists(self, root_entity: str, triple: Tuple[str, str, str]):
+        if triple not in self._predicted_summaries[root_entity]:
+            self._predicted_summaries[root_entity].append(triple)
+
+    def mark_triple_as_summary(self, root_entity: Union[RootEntity, str, pd.Series], triple: Union[
+        Triple,
+        Tuple[
             Union[Entity, str],
             Union[Predicate, str],
             Union[Entity, str]
-        ]
+        ],
+        pd.Series
     ]):
         if isinstance(self._entities, pd.DataFrame):
-            if not isinstance(triple, Tuple):
-                raise ValueError("Triple should be a Tuple of (subject, predicate, object).")
+            if isinstance(triple, pd.Series):
+                raise ValueError("Triple should be a Tuple of (subject, predicate, object) or a pd.Series.")
             identifier = str(self.fetch_root_entity(root_entity).name)
             triple = self.fetch_triple(triple)
 
-            if identifier != triple['subject'] and root_entity != triple['object']:
-                raise ValueError(f"Root entity: {root_entity} should be either a subject or an"
+            if identifier != triple['subject'] and identifier != triple['object']:
+                raise ValueError(f"Root entity: {identifier} should be either a subject or an"
                                  f" object of the triple in a summary.")
 
-            self._predicted_summaries[identifier].append(
-                (triple['subject'], triple['predicate'], triple['object'])
-            )
+            self._add_predication_if_not_exists(identifier, (triple['subject'], triple['predicate'], triple['object']))
         else:
             root_entity_id = self.fetch_entity(root_entity).identifier
             triple = self.fetch_triple(triple)
@@ -336,19 +356,22 @@ class BaseESGraph(ABC):
                 raise ValueError(
                     f"Root entity: {root_entity_id} should be either a subject or an object of the triple in a summary.")
 
-            self._predicted_summaries[root_entity_id].append((
-                triple.subject_entity.identifier,
-                triple.predicate.predicate_id,
-                triple.object_entity.identifier
-            ))
+            self._add_predication_if_not_exists(
+                root_entity_id,
+                (
+                    triple.subject_entity.identifier,
+                    triple.predicate.predicate_id,
+                    triple.object_entity.identifier
+                )
+            )
 
     def clear_summaries(self):
         self._predicted_summaries.clear()
 
     def mark_triples_as_summaries(
             self,
-            root_entity: Union[RootEntity, str],
-            triples: List[Union[Triple, Tuple[str, str, str]]]
+            root_entity: Union[RootEntity, str, pd.Series],
+            triples: List[Union[Triple, Union[Triple, Tuple[str, str, str], pd.Series]]]
     ):
         for triple in triples:
             self.mark_triple_as_summary(root_entity, triple)
@@ -356,14 +379,14 @@ class BaseESGraph(ABC):
     def predications(self) -> Dict[str, List[Tuple[str, str, str]]]:
         return self._predicted_summaries
 
-    def predication_for_root(self, identifier: str) -> List[Tuple[str, str, str]]:
+    def predications_for_root(self, identifier: str) -> List[Tuple[str, str, str]]:
         if identifier in self._predicted_summaries:
             return self._predicted_summaries[identifier]
         else:
             return list()
 
     @abstractmethod
-    def ground_truths(self, root_entity: Union[RootEntity, str]) -> List[Tuple[str, str, str]]:
+    def ground_truths(self, root_entity: Union[RootEntity, str, pd.Series]) -> List[Tuple[str, str, str]]:
         if isinstance(self._ground_truths, pd.DataFrame):
             root_entity = self.fetch_root_entity(root_entity)
             return self._ground_truths[self._ground_truths.index == root_entity.name]
@@ -374,7 +397,7 @@ class BaseESGraph(ABC):
             return self._ground_truths[root_entity_id]
 
     @abstractmethod
-    def ground_truth_triple_ids(self, root_entity: Union[RootEntity, str]) -> List[Tuple[str, str, str]]:
+    def ground_truth_triple_ids(self, root_entity: Union[RootEntity, str, pd.Series]) -> List[Tuple[str, str, str]]:
         if isinstance(self._ground_truths, pd.DataFrame):
             return list(self.ground_truths(root_entity)[['subject', 'predicate', 'object']].apply(tuple, axis=1))
         else:

@@ -13,9 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 class ESBMGraph(ESBMBaseGraph):
-    def __init__(self, G: nx.MultiDiGraph, dataset: DatasetName, entity_formatter: Optional[callable] = None,
+    def __init__(self, G: nx.MultiDiGraph, dataset: DatasetName,
+                 root_entity_formatter: Optional[callable] = None,
+                 entity_formatter: Optional[callable] = None,
                  predicate_formatter: Optional[callable] = None, triple_formatter: Optional[callable] = None):
-        super().__init__(G, dataset, entity_formatter, predicate_formatter, triple_formatter)
+        super().__init__(G, dataset, root_entity_formatter, entity_formatter, predicate_formatter, triple_formatter)
 
     def _extract_gold_summaries(self, data: dict[str, any], triple: ESBMTriple):
         for i in range(6):
@@ -43,17 +45,20 @@ class ESBMGraph(ESBMBaseGraph):
                     identifier=node,
                     eid=data.get('eid'),
                     category=data.get('category'),
-                    str_formatter=self._entity_formatter
+                    str_formatter=self._root_entity_formatter
                 )
                 self._root_entities[node] = root_entity
-                self._entities[node] = root_entity
-            else:
-                entity = ESBMEntity(
-                    identifier=node,
-                    str_formatter=self._entity_formatter
-                )
-                self._entities[node] = entity
+
+            entity = ESBMEntity(
+                identifier=node,
+                str_formatter=self._entity_formatter
+            )
+            self._entities[node] = entity
         logger.debug(f"Entities: {len(self._entities)} initialized.")
+
+        # sort root entities based on eid
+        self._root_entities = dict(sorted(self._root_entities.items(), key=lambda x: x[1].eid))
+        logger.debug(f"Root Entities: {len(self._root_entities)} initialized.")
 
         logger.debug("Initializing triples...")
         for u, v, data in self._G.edges(data=True):
@@ -74,27 +79,6 @@ class ESBMGraph(ESBMBaseGraph):
 
             if 'summary_for' in data:
                 self._extract_gold_summaries(data, triple)
-
-    def all_gold_top_k(self, k: int) -> Dict[str, List[List[Tuple[str, str, str]]]]:
-        if k not in [5, 10]:
-            raise ValueError("k should be 5 or 10")
-        gold_top_k = self._gold_top_5 if k == 5 else self._gold_top_10
-        result = defaultdict(lambda: [list() for _ in range(6)])
-        for root_entity_id, top_list in gold_top_k.items():
-            for i, items in enumerate(top_list):
-                result[root_entity_id][i] = [
-                    (t.subject_entity.identifier, t.predicate.predicate_id, t.object_entity.identifier) for t in items]
-        return result
-
-    def gold_top_5(self, root_entity: Union[ESBMRootEntity, str], annotator_index: int) -> List[ESBMTriple]:
-        if annotator_index < 0 or annotator_index > 5:
-            raise ValueError("Annotator index should be between 0 and 5.")
-        return self._gold_top_5[self.fetch_root_entity_id(root_entity)][annotator_index]
-
-    def gold_top_10(self, root_entity: Union[ESBMRootEntity, str], annotator_index: int) -> List[ESBMTriple]:
-        if annotator_index < 0 or annotator_index > 5:
-            raise ValueError("Annotator index should be between 0 and 5.")
-        return self._gold_top_10[self.fetch_root_entity_id(root_entity)][annotator_index]
 
     def root_entities(self) -> List[ESBMRootEntity]:
         return super().root_entities()
@@ -129,3 +113,24 @@ class ESBMGraph(ESBMBaseGraph):
 
     def neighbors(self, entity: Union[Entity, str]) -> List[Entity]:
         return super().neighbors(entity)
+
+    def all_gold_top_k(self, k: int) -> Dict[str, List[List[Tuple[str, str, str]]]]:
+        if k not in [5, 10]:
+            raise ValueError("k should be 5 or 10")
+        gold_top_k = self._gold_top_5 if k == 5 else self._gold_top_10
+        result = defaultdict(lambda: [list() for _ in range(6)])
+        for root_entity_id, top_list in gold_top_k.items():
+            for i, items in enumerate(top_list):
+                result[root_entity_id][i] = [
+                    (t.subject_entity.identifier, t.predicate.predicate_id, t.object_entity.identifier) for t in items]
+        return result
+
+    def gold_top_5(self, root_entity: Union[ESBMRootEntity, str], annotator_index: int) -> List[ESBMTriple]:
+        if annotator_index < 0 or annotator_index > 5:
+            raise ValueError("Annotator index should be between 0 and 5.")
+        return self._gold_top_5[self.fetch_root_entity_id(root_entity)][annotator_index]
+
+    def gold_top_10(self, root_entity: Union[ESBMRootEntity, str], annotator_index: int) -> List[ESBMTriple]:
+        if annotator_index < 0 or annotator_index > 5:
+            raise ValueError("Annotator index should be between 0 and 5.")
+        return self._gold_top_10[self.fetch_root_entity_id(root_entity)][annotator_index]

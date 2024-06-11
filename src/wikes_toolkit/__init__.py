@@ -1,7 +1,8 @@
 from .toolkit import WikESToolkit
 
 from wikes_toolkit.esbm.esbm_versions import ESBMVersions
-from wikes_toolkit.esbm.esbm_graph import ESBMGraph
+from wikes_toolkit.esbm.esbm_graph import ESBMGraph as ESBMGraph
+from wikes_toolkit.esbm.esbm_pandas_graph import PandasESBMGraph as PandasESBMGraph
 from wikes_toolkit.esbm.esbm_graph_components import ESBMEntity, ESBMPredicate, ESBMRootEntity
 
 from wikes_toolkit.wikes.wikes_versions import WikESVersions

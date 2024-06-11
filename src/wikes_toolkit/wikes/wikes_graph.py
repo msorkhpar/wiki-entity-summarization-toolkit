@@ -1,10 +1,11 @@
 import logging
 from collections import defaultdict
-from typing import Union, Tuple, Set, List, Optional, Dict
+from typing import Union, Tuple, List, Optional, Dict
 
 import networkx as nx
 
 from wikes_toolkit.base.graph_components import Entity, RootEntity, Triple, Predicate
+from wikes_toolkit.base.versions import DatasetName
 from wikes_toolkit.wikes.wikies_graph_components import WikiBaseWikESGraph, WikiEntity, WikiRootEntity, WikiPredicate, \
     WikiTriple
 
@@ -13,10 +14,15 @@ logger = logging.getLogger(__name__)
 
 class WikESGraph(WikiBaseWikESGraph):
 
-    def __init__(self, G: nx.MultiDiGraph, entity_formatter: Optional[callable] = None,
-                 predicate_formatter: Optional[callable] = None, triple_formatter: Optional[callable] = None
+    def __init__(self,
+                 G: nx.MultiDiGraph,
+                 dataset: DatasetName,
+                 root_entity_formatter: Optional[callable] = None,
+                 entity_formatter: Optional[callable] = None,
+                 predicate_formatter: Optional[callable] = None,
+                 triple_formatter: Optional[callable] = None
                  ):
-        super().__init__(G, entity_formatter, predicate_formatter, triple_formatter)
+        super().__init__(G, dataset, root_entity_formatter, entity_formatter, predicate_formatter, triple_formatter)
 
     def _initialize(self):
         self._entities: Dict[str, WikiEntity] = {}
@@ -34,20 +40,19 @@ class WikESGraph(WikiBaseWikESGraph):
                     wikipedia_id=data.get('wikipedia_id'),
                     wikipedia_title=data.get('wikipedia_title'),
                     category=data.get('category'),
-                    str_formatter=self._entity_formatter
+                    str_formatter=self._root_entity_formatter
                 )
                 self._root_entities[node] = root_entity
-                self._entities[node] = root_entity
-            else:
-                entity = WikiEntity(
-                    identifier=node,
-                    wikidata_label=data.get('wikidata_label'),
-                    wikidata_description=data.get('wikidata_desc'),
-                    wikipedia_id=data.get('wikipedia_id'),
-                    wikipedia_title=data.get('wikipedia_title'),
-                    str_formatter=self._entity_formatter
-                )
-                self._entities[node] = entity
+
+            entity = WikiEntity(
+                identifier=node,
+                wikidata_label=data.get('wikidata_label'),
+                wikidata_description=data.get('wikidata_desc'),
+                wikipedia_id=data.get('wikipedia_id'),
+                wikipedia_title=data.get('wikipedia_title'),
+                str_formatter=self._entity_formatter
+            )
+            self._entities[node] = entity
         logger.debug(f"Entities: {len(self._entities)} initialized.")
 
         logger.debug("Initializing triples...")

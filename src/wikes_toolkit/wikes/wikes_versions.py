@@ -25,7 +25,7 @@ class WikESVersions:
         def get_dataset_url(dataset: DatasetName) -> str:
             return WikESVersions.V1.base_url + dataset.value + ".pkl"
 
-        class First(DatasetName):
+        class WikiLitArt(DatasetName):
             SMALL_FULL = '1_small_full'
             SMALL_TRAIN = '1_small_train'
             SMALL_VALIDATION = '1_small_val'
@@ -42,7 +42,7 @@ class WikESVersions:
             def get_dataset_url(self):
                 return WikESVersions.V1.get_dataset_url(self)
 
-        class Second(DatasetName):
+        class WikiCinema(DatasetName):
             SMALL_FULL = '2_small_full'
             SMALL_TRAIN = '2_small_train'
             SMALL_VALIDATION = '2_small_val'
@@ -59,7 +59,7 @@ class WikESVersions:
             def get_dataset_url(self):
                 return WikESVersions.V1.get_dataset_url(self)
 
-        class Third(DatasetName):
+        class WikiPro(DatasetName):
             SMALL_FULL = '3_small_full'
             SMALL_TRAIN = '3_small_train'
             SMALL_VALIDATION = '3_small_val'
@@ -76,7 +76,7 @@ class WikESVersions:
             def get_dataset_url(self):
                 return WikESVersions.V1.get_dataset_url(self)
 
-        class Fourth(DatasetName):
+        class WikiProFem(DatasetName):
             SMALL_FULL = '4_small_full'
             SMALL_TRAIN = '4_small_train'
             SMALL_VALIDATION = '4_small_val'
