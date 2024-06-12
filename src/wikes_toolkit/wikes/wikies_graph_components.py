@@ -3,9 +3,10 @@ from __future__ import annotations
 import logging
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional, Union, Tuple, Callable, List
+from typing import Optional, Union, Tuple, Callable, List, Dict
 
 import networkx as nx
+import pandas as pd
 
 from wikes_toolkit.base.graph_components import Entity, Predicate, Triple, BaseESGraph
 from wikes_toolkit.base.versions import DatasetName
@@ -99,7 +100,7 @@ class WikiTriple(Triple):
         return hash(self.key())
 
 
-class WikiBaseWikESGraph(BaseESGraph):
+class WikESBaseGraph(BaseESGraph):
     def __init__(self, G: nx.MultiDiGraph,
                  dataset: DatasetName,
                  root_entity_formatter: Optional[callable] = None,
@@ -116,8 +117,32 @@ class WikiBaseWikESGraph(BaseESGraph):
     def _initialize(self):
         pass
 
-    def ground_truths(self, root_entity: Union[WikiRootEntity, str]):
-        return super().ground_truths(root_entity)
+    def ground_truths(self, root_entity: Union[WikiRootEntity, str, pd.Series]) -> Union[
+        List[Tuple[str, str, str]],
+        pd.Series
+    ]:
+        if isinstance(self._ground_truths, pd.DataFrame):
+            root_entity = self.fetch_root_entity(root_entity)
+            return self._ground_truths[self._ground_truths.index == root_entity.name]
+        else:
+            root_entity_id = self.fetch_root_entity(root_entity).identifier
+            if root_entity_id not in self._ground_truths:
+                raise ValueError(f"No ground truth summaries found for root_entity: {root_entity_id}.")
+            return self._ground_truths[root_entity_id]
 
-    def ground_truth_triple_ids(self, root_entity: Union[WikiRootEntity, str]) -> List[Tuple[str, str, str]]:
-        return super().ground_truth_triple_ids(root_entity)
+    def ground_truth_triple_ids(self, root_entity: Union[WikiRootEntity, str, pd.Series]) -> List[Tuple[str, str, str]]:
+        if isinstance(self._ground_truths, pd.DataFrame):
+            return list(self.ground_truths(root_entity)[['subject', 'predicate', 'object']].apply(tuple, axis=1))
+        else:
+            return [(s, p, o) for s, p, o in self.ground_truths(root_entity)]
+
+    def all_ground_truth_triple_ids(self, k: int = None) -> Dict[str, List[Tuple[str, str, str]]]:
+        if k is not None:
+            result = {}
+            for root_entity in self.root_entity_ids():
+                ground_truth_triples = self.ground_truth_triple_ids(root_entity)
+                if len(ground_truth_triples) < k:
+                    result[root_entity] = ground_truth_triples
+                else:
+                    result[root_entity] = self.ground_truth_triple_ids(root_entity)[:k]
+        return {root_entity: self.ground_truth_triple_ids(root_entity) for root_entity in self.root_entity_ids()}

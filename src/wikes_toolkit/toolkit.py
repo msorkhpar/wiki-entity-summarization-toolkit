@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import pickle
 import inspect
 import types
@@ -14,6 +15,7 @@ from tqdm import tqdm
 from wikes_toolkit.esbm.esbm_eval import ESBMSummaryEvaluator
 from wikes_toolkit.esbm.esbm_graph_components import ESBMBaseGraph
 from wikes_toolkit.esbm.esbm_pandas_graph import PandasESBMGraph
+from wikes_toolkit.wikes.wikes_eval import WikESSummaryEvaluator
 from wikes_toolkit.wikes.wikes_versions import WikESVersions
 from wikes_toolkit.esbm.esbm_versions import ESBMVersions
 
@@ -23,7 +25,7 @@ from wikes_toolkit.esbm.esbm_graph import ESBMGraph
 from wikes_toolkit.wikes.wikes_graph import WikESGraph
 from wikes_toolkit.wikes.wikes_pandas_graph import PandasWikESGraph
 from wikes_toolkit.base.versions import DatasetName, DatasetVersion
-from wikes_toolkit.wikes.wikies_graph_components import WikiBaseWikESGraph
+from wikes_toolkit.wikes.wikies_graph_components import WikESBaseGraph
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +52,8 @@ class WikESToolkit:
                 f"Failed to download dataset [{dataset}] from {url}. HTTP Status Code: {response.status_code}")
 
         total_size = int(response.headers.get('content-length', 0))
-        dataset_path = self.save_path / f"{dataset.value}.pkl"
-
+        dataset_path = self.save_path / dataset.get_version() / f"{dataset.value}.pkl"
+        dataset_path.parent.mkdir(parents=True, exist_ok=True)
         with open(dataset_path, 'wb') as file, tqdm(
                 desc=str(dataset_path),
                 total=total_size,
@@ -65,7 +67,10 @@ class WikESToolkit:
 
     def __apply_predictions(
             G: BaseESGraph,
-            predictions: Dict[Union[RootEntity, str], List[Union[Triple, Tuple[str, str, str]]]]
+            predictions: Dict[
+                Union[RootEntity, str],
+                List[Union[Triple, Tuple[str, str, str]]]
+            ]
     ):
         if predictions is None:
             return
@@ -87,7 +92,7 @@ class WikESToolkit:
         if not issubclass(implementation_class, BaseESGraph):
             raise ValueError("Please use a valid WikESGraph class.")
 
-        if isinstance(dataset, self.WikES_datasets) and not issubclass(implementation_class, WikiBaseWikESGraph):
+        if isinstance(dataset, self.WikES_datasets) and not issubclass(implementation_class, WikESBaseGraph):
             raise ValueError("To use a WikES dataset, use WikESGraph or PandasWikESGraph.")
         if isinstance(dataset, self.ESBM_datasets) and not issubclass(implementation_class, ESBMBaseGraph):
             raise ValueError("To use an ESBM dataset you need to use the ESBMGraph class.")
@@ -107,7 +112,7 @@ class WikESToolkit:
                 entity_formatter or predicate_formatter or triple_formatter):
             logger.warning("PandasWikESGraph does not support custom formatters. Ignoring formater functions.")
 
-        dataset_path = self.save_path / f"{dataset.value}.pkl"
+        dataset_path = self.save_path / dataset.get_version() / f"{dataset.value}.pkl"
         if not dataset_path.exists():
             self.__download_graph(dataset)
         if not dataset_path.exists():
@@ -155,39 +160,15 @@ class WikESToolkit:
 
     @staticmethod
     def F1(
-            G: BaseESGraph, k: int = 5,
-            predictions: Dict[Union[RootEntity, str], List[Union[Triple, Tuple[str, str, str]]]] = None
+            G: BaseESGraph,
+            k: int = None,
+            additional_predictions: Dict[Union[RootEntity, str], List[Union[Triple, Tuple[str, str, str]]]] = None
     ) -> float:
-        WikESToolkit.__apply_predictions(G, predictions)
+        WikESToolkit.__apply_predictions(G, additional_predictions)
 
         if G.predications() == 0:
             logger.error("No predictions found or provided.")
             return 0
-
-        if isinstance(G, ESBMBaseGraph):
-            return WikESToolkit._ESBM_F1(G, k)
-
-        raise NotImplementedError
-
-    @staticmethod
-    def _ESBM_F1(G: ESBMBaseGraph, k: int) -> float:
-        logger.debug(f"Calculating F1 score...")
-        evaluator = ESBMSummaryEvaluator(G.root_entity_ids(), G.all_gold_top_k(k), G.predications(), k)
-        return evaluator.evaluate_f1()
-
-    @staticmethod
-    def MAP(
-            G: BaseESGraph,
-            k: int = 5,
-            predictions: Dict[Union[RootEntity, str], List[Union[Triple, Tuple[str, str, str]]]] = None
-    ) -> float:
-        WikESToolkit.__apply_predictions(G, predictions)
-        if len(G.predications()) == 0:
-            logger.error("No predictions found or provided.")
-            return 0
-
-        if isinstance(G, ESBMBaseGraph):
-            return WikESToolkit._ESBM_MAP(G, k, predictions)
 
         root_entity_ids = list(G.root_entity_ids())
         n = len(root_entity_ids)
@@ -195,40 +176,64 @@ class WikESToolkit:
             logger.error("No root entities found.")
             return 0
 
-        total_avg_prec = 0
+        logger.debug(f"Calculating F1 score...")
 
-        for root_entity_id in G.root_entity_ids():
-            ground_truth_triples: List[Tuple[str, str, str]] = G.ground_truth_triple_ids(root_entity_id)
-            if len(ground_truth_triples) == 0:
-                logger.debug(f"No ground truth triples for root entity {root_entity_id}")
-                continue
-
-            prec_sum = 0
-            num_hits = 0
-
-            for i, triple in enumerate(G.predications_for_root(root_entity_id), start=1):
-                if triple in ground_truth_triples:
-                    num_hits += 1
-                    prec_sum += num_hits / i
-
-            avg_prec = prec_sum / len(ground_truth_triples) if num_hits > 0 else 0
-            total_avg_prec += avg_prec
-
-        final_map = total_avg_prec / n
-        logger.debug(f"Final MAP: {final_map}")
-        return final_map
+        if isinstance(G, ESBMBaseGraph):
+            return WikESToolkit._ESBM_F1(G, k)
+        elif isinstance(G, WikESBaseGraph):
+            return WikESToolkit._WikES_MAP(G, k)
+        else:
+            raise NotImplementedError("F1 score is not implemented for this graph type.")
 
     @staticmethod
-    def _ESBM_MAP(
-            G: ESBMBaseGraph,
-            k: int = 5,
-            predictions: Dict[Union[RootEntity, str], List[Union[Triple, Tuple[str, str, str]]]] = None
+    def MAP(
+            G: BaseESGraph,
+            k: int = None,
+            additional_predictions: Dict[Union[RootEntity, str], List[Union[Triple, Tuple[str, str, str]]]] = None
     ) -> float:
-        WikESToolkit.__apply_predictions(G, predictions)
+        WikESToolkit.__apply_predictions(G, additional_predictions)
 
-        if G.predications() == 0:
+        if len(G.predications()) == 0:
             logger.error("No predictions found or provided.")
             return 0
-        logger.debug(f"Calculating F1 score...")
+
+        root_entity_ids = list(G.root_entity_ids())
+        n = len(root_entity_ids)
+        if n == 0:
+            logger.error("No root entities found.")
+            return 0
+
+        logger.debug(f"Calculating MAP score...")
+
+        if isinstance(G, ESBMBaseGraph):
+            return WikESToolkit._ESBM_MAP(G, k)
+        elif isinstance(G, WikESBaseGraph):
+            return WikESToolkit._WikES_MAP(G, k)
+        else:
+            raise NotImplementedError("MAP score is not implemented for this graph type.")
+
+    @staticmethod
+    def _WikES_F1(G: WikESBaseGraph, k: int) -> float:
+        evaluator = WikESSummaryEvaluator(G.root_entity_ids(), G.all_ground_truth_triple_ids(k), G.predications(), k)
+        return evaluator.evaluate_f1()
+
+    @staticmethod
+    def _WikES_MAP(G: WikESBaseGraph, k: int) -> float:
+        evaluator = WikESSummaryEvaluator(G.root_entity_ids(), G.all_ground_truth_triple_ids(k), G.predications(), k)
+        return evaluator.evaluate_map()
+
+    @staticmethod
+    def _ESBM_F1(G: ESBMBaseGraph, k: int) -> float:
+        if k != 5 and k != 10:
+            raise ValueError("Only top-5 and top-10 summaries are allowed for ESBM.")
+
+        evaluator = ESBMSummaryEvaluator(G.root_entity_ids(), G.all_gold_top_k(k), G.predications(), k)
+        return evaluator.evaluate_f1()
+
+    @staticmethod
+    def _ESBM_MAP(G: ESBMBaseGraph, k: int = 5) -> float:
+        if k != 5 and k != 10:
+            raise ValueError("Only top-5 and top-10 summaries are allowed for ESBM.")
+
         evaluator = ESBMSummaryEvaluator(G.root_entity_ids(), G.all_gold_top_k(k), G.predications(), k)
         return evaluator.evaluate_map()

@@ -19,76 +19,93 @@ class WikESVersions:
         return tuple(subclasses)
 
     class V1(DatasetVersion):
-        base_url = 'https://github.com/msorkhpar/wiki-entity-summarization/releases/download/1.0.4/'
+        version = '1.0.5'
+        base_url = f'https://github.com/msorkhpar/wiki-entity-summarization/releases/download/{version}/'
 
         @staticmethod
         def get_dataset_url(dataset: DatasetName) -> str:
             return WikESVersions.V1.base_url + dataset.value + ".pkl"
 
+        @staticmethod
+        def get_version() -> str:
+            return WikESVersions.V1.version
+
         class WikiLitArt(DatasetName):
-            SMALL_FULL = '1_small_full'
-            SMALL_TRAIN = '1_small_train'
-            SMALL_VALIDATION = '1_small_val'
-            SMALL_TEST = '1_small_test'
-            MEDIUM_FULL = '1_medium_full'
-            MEDIUM_TRAIN = '1_medium_train'
-            MEDIUM_VALIDATION = '1_medium_val'
-            MEDIUM_TEST = '1_medium_test'
-            LARGE_FULL = '1_large_full'
-            LARGE_TRAIN = '1_large_train'
-            LARGE_VALIDATION = '1_large_val'
-            LARGE_TEST = '1_large_test'
+            SMALL = 'WikiLitArt-s'
+            SMALL_TRAIN = 'WikiLitArt-s-train'
+            SMALL_VALIDATION = 'WikiLitArt-s-val'
+            SMALL_TEST = 'WikiLitArt-s-test'
+            MEDIUM = 'WikiLitArt-m'
+            MEDIUM_TRAIN = 'WikiLitArt-m-train'
+            MEDIUM_VALIDATION = 'WikiLitArt-m-val'
+            MEDIUM_TEST = 'WikiLitArt-m-test'
+            LARGE = 'WikiLitArt-l'
+            LARGE_TRAIN = 'WikiLitArt-l-train'
+            LARGE_VALIDATION = 'WikiLitArt-l-val'
+            LARGE_TEST = 'WikiLitArt-l-test'
 
             def get_dataset_url(self):
                 return WikESVersions.V1.get_dataset_url(self)
+
+            def get_version(self):
+                return WikESVersions.V1.get_version()
 
         class WikiCinema(DatasetName):
-            SMALL_FULL = '2_small_full'
-            SMALL_TRAIN = '2_small_train'
-            SMALL_VALIDATION = '2_small_val'
-            SMALL_TEST = '2_small_test'
-            MEDIUM_FULL = '2_medium_full'
-            MEDIUM_TRAIN = '2_medium_train'
-            MEDIUM_VALIDATION = '2_medium_val'
-            MEDIUM_TEST = '2_medium_test'
-            LARGE_FULL = '2_large_full'
-            LARGE_TRAIN = '2_large_train'
-            LARGE_VALIDATION = '2_large_val'
-            LARGE_TEST = '2_large_test'
+            SMALL = 'WikiCinema-s'
+            SMALL_TRAIN = 'WikiCinema-s-train'
+            SMALL_VALIDATION = 'WikiCinema-s-val'
+            SMALL_TEST = 'WikiCinema-s-test'
+            MEDIUM = 'WikiCinema-m'
+            MEDIUM_TRAIN = 'WikiCinema-m-train'
+            MEDIUM_VALIDATION = 'WikiCinema-m-val'
+            MEDIUM_TEST = 'WikiCinema-m-test'
+            LARGE = 'WikiCinema-l'
+            LARGE_TRAIN = 'WikiCinema-l-train'
+            LARGE_VALIDATION = 'WikiCinema-l-val'
+            LARGE_TEST = 'WikiCinema-l-test'
 
             def get_dataset_url(self):
                 return WikESVersions.V1.get_dataset_url(self)
+
+            def get_version(self):
+                return WikESVersions.V1.get_version()
 
         class WikiPro(DatasetName):
-            SMALL_FULL = '3_small_full'
-            SMALL_TRAIN = '3_small_train'
-            SMALL_VALIDATION = '3_small_val'
-            SMALL_TEST = '3_small_test'
-            MEDIUM_FULL = '3_medium_full'
-            MEDIUM_TRAIN = '3_medium_train'
-            MEDIUM_VALIDATION = '3_medium_val'
-            MEDIUM_TEST = '3_medium_test'
-            LARGE_FULL = '3_large_full'
-            LARGE_TRAIN = '3_large_train'
-            LARGE_VALIDATION = '3_large_val'
-            LARGE_TEST = '3_large_test'
+            SMALL = 'WikiPro-s'
+            SMALL_TRAIN = 'WikiPro-s-train'
+            SMALL_VALIDATION = 'WikiPro-s-val'
+            SMALL_TEST = 'WikiPro-s-test'
+            MEDIUM = 'WikiPro-m'
+            MEDIUM_TRAIN = 'WikiPro-m-train'
+            MEDIUM_VALIDATION = 'WikiPro-m-val'
+            MEDIUM_TEST = 'WikiPro-m-test'
+            LARGE = 'WikiPro-l'
+            LARGE_TRAIN = 'WikiPro-l-train'
+            LARGE_VALIDATION = 'WikiPro-l-val'
+            LARGE_TEST = 'WikiPro-l-test'
 
             def get_dataset_url(self):
                 return WikESVersions.V1.get_dataset_url(self)
+
+            def get_version(self):
+                return WikESVersions.V1.get_version()
 
         class WikiProFem(DatasetName):
-            SMALL_FULL = '4_small_full'
-            SMALL_TRAIN = '4_small_train'
-            SMALL_VALIDATION = '4_small_val'
-            SMALL_TEST = '4_small_test'
-            MEDIUM_FULL = '4_medium_full'
-            MEDIUM_TRAIN = '4_medium_train'
-            MEDIUM_VALIDATION = '4_medium_val'
-            MEDIUM_TEST = '4_medium_test'
-            LARGE_FULL = '4_large_full'
-            LARGE_TRAIN = '4_large_train'
-            LARGE_VALIDATION = '4_large_val'
-            LARGE_TEST = '4_large_test'
+            SMALL = 'WikiProFem-s'
+            SMALL_TRAIN = 'WikiProFem-s-train'
+            SMALL_VALIDATION = 'WikiProFem-s-val'
+            SMALL_TEST = 'WikiProFem-s-test'
+            MEDIUM = 'WikiProFem-m'
+            MEDIUM_TRAIN = 'WikiProFem-m-train'
+            MEDIUM_VALIDATION = 'WikiProFem-m-val'
+            MEDIUM_TEST = 'WikiProFem-m-test'
+            LARGE = 'WikiProFem-l'
+            LARGE_TRAIN = 'WikiProFem-l-train'
+            LARGE_VALIDATION = 'WikiProFem-l-val'
+            LARGE_TEST = 'WikiProFem-l-test'
 
             def get_dataset_url(self):
                 return WikESVersions.V1.get_dataset_url(self)
+
+            def get_version(self):
+                return WikESVersions.V1.get_version()

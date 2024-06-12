@@ -213,10 +213,7 @@ class BaseESGraph(ABC):
                 raise ValueError(f"Entity with identifier: {entity} is not a root entity.")
             return entity
         else:
-            if isinstance(entity, self._entity_type) and not isinstance(entity, self._root_type) and not isinstance(
-                    entity, str):
-                raise ValueError(f"Entity {entity} is not a root entity.")
-            if isinstance(entity, self._root_type):
+            if isinstance(entity, self._root_type) or isinstance(entity, self._entity_type):
                 identifier = entity.identifier
             else:
                 identifier = entity
@@ -259,14 +256,14 @@ class BaseESGraph(ABC):
         if isinstance(self._triples, pd.DataFrame):
             if isinstance(triple, pd.Series):
                 triple = triple['subject'], triple['predicate'], triple['object']
-            triple = self._triples[
+            fetched_triple = self._triples[
                 (self._triples['subject'] == triple[0]) &
                 (self._triples['predicate'] == triple[1]) &
                 (self._triples['object'] == triple[2])
                 ]
-            if triple.empty:
-                raise ValueError(f"Triple ({triple[0]})-[{triple[1]}]->({triple[2]}) not found.")
-            return triple.iloc[0]
+            if fetched_triple.empty:
+                raise ValueError(f"Triple ({triple}) not found.")
+            return fetched_triple.iloc[0]
         else:
             if isinstance(triple, Tuple):
                 subject_entity = self.fetch_entity(triple[0])
@@ -339,14 +336,12 @@ class BaseESGraph(ABC):
         pd.Series
     ]):
         if isinstance(self._entities, pd.DataFrame):
-            if isinstance(triple, pd.Series):
-                raise ValueError("Triple should be a Tuple of (subject, predicate, object) or a pd.Series.")
             identifier = str(self.fetch_root_entity(root_entity).name)
             triple = self.fetch_triple(triple)
 
             if identifier != triple['subject'] and identifier != triple['object']:
-                raise ValueError(f"Root entity: {identifier} should be either a subject or an"
-                                 f" object of the triple in a summary.")
+                raise ValueError(
+                    f"Root entity: {identifier} should be either a subject or an object of the triple in a summary.")
 
             self._add_predication_if_not_exists(identifier, (triple['subject'], triple['predicate'], triple['object']))
         else:
@@ -371,10 +366,14 @@ class BaseESGraph(ABC):
     def mark_triples_as_summaries(
             self,
             root_entity: Union[RootEntity, str, pd.Series],
-            triples: List[Union[Triple, Union[Triple, Tuple[str, str, str], pd.Series]]]
+            triples: List[Union[Triple, Union[Triple, Tuple[str, str, str], pd.DataFrame]]]
     ):
-        for triple in triples:
-            self.mark_triple_as_summary(root_entity, triple)
+        if isinstance(triples, (pd.Series, pd.DataFrame)):
+            for index, triple in triples.iterrows():
+                self.mark_triple_as_summary(root_entity, triple)
+        else:
+            for triple in triples:
+                self.mark_triple_as_summary(root_entity, triple)
 
     def predications(self) -> Dict[str, List[Tuple[str, str, str]]]:
         return self._predicted_summaries
@@ -384,21 +383,3 @@ class BaseESGraph(ABC):
             return self._predicted_summaries[identifier]
         else:
             return list()
-
-    @abstractmethod
-    def ground_truths(self, root_entity: Union[RootEntity, str, pd.Series]) -> List[Tuple[str, str, str]]:
-        if isinstance(self._ground_truths, pd.DataFrame):
-            root_entity = self.fetch_root_entity(root_entity)
-            return self._ground_truths[self._ground_truths.index == root_entity.name]
-        else:
-            root_entity_id = self.fetch_root_entity(root_entity).identifier
-            if root_entity_id not in self._ground_truths:
-                raise ValueError(f"No ground truth summaries found for root_entity: {root_entity_id}.")
-            return self._ground_truths[root_entity_id]
-
-    @abstractmethod
-    def ground_truth_triple_ids(self, root_entity: Union[RootEntity, str, pd.Series]) -> List[Tuple[str, str, str]]:
-        if isinstance(self._ground_truths, pd.DataFrame):
-            return list(self.ground_truths(root_entity)[['subject', 'predicate', 'object']].apply(tuple, axis=1))
-        else:
-            return [(s, p, o) for s, p, o in self.ground_truths(root_entity)]

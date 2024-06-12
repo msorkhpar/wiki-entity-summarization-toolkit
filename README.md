@@ -3,8 +3,7 @@
 ![PyPI - Status](https://img.shields.io/pypi/status/wikes-toolkit)![PyPI - Downloads](https://img.shields.io/pypi/dm/wikes-toolkit)![GitHub License](https://img.shields.io/github/license/msorkhpar/wikies-toolkit)
 
 A user-friendly toolkit for the Wiki-Entity-Summarization (WikES) datasets.
-It provides functionalities for downloading, loading, and working with 48 pre-generated graph datasets, as well as
-evaluating predictions against the ground truth.
+It provides functionalities for downloading, loading, and working with 48 pre-generated graph datasets.
 
 ## Parent project
 
@@ -31,7 +30,7 @@ from wikes_toolkit import WikESToolkit, WikESVersions, WikESGraph
 toolkit = WikESToolkit(save_path="./data")  # save_path is optional
 G = toolkit.load_graph(
     WikESGraph,
-    WikESVersions.V1.WikiLitArt.SMALL_FULL,
+    WikESVersions.V1.WikiCinema.SMALL,
     entity_formatter=lambda e: f"Entity({e.wikidata_label})",
     predicate_formatter=lambda p: f"Predicate({p.label})",
     triple_formatter=lambda
@@ -47,14 +46,8 @@ number_of_directed_edges = G.total_triples()
 node = G.fetch_entity('Q303')
 node_degree = G.degree('Q303')
 neighbors = G.ground_truths(node)
-# or  G.neighbors('Q303')
 ground_truth_summaries = G.ground_truths(root_nodes[0])
-# or G.ground_truth_summaries('Q303')
-G.mark_triple_as_summary(root_nodes[0], edges[0])
-# or G.mark_triple_as_summary(root_nodes[0], ('Q303', 'P241', 'Q9212'))
-# or G.mark_triple_as_summary('Q303', ('Q303', 'P264', 'Q898618'))
-# or G.mark_triples_as_summaries(root_nodes[1], [G.neighbors(root_nodes[1])[0], G.neighbors(root_nodes[1])[1]])
-print(f"MAP is {toolkit.MAP(G)}")
+G.mark_triple_as_summary(edges[0].subject_entity, edges[0])
 
 for root in G.root_entities():
     print(f"Neighbors of [{root}]:")
@@ -89,11 +82,17 @@ Ground truth summaries:
 (Elvis Presley)-[record label]-> (Sun Records)
 (Elvis Presley)-[genre]-> (pop music)
 """
+```
 
-for dataset_name, G in toolkit.load_all_graphs(WikESGraph, WikESVersions.V1):
+
+To load all graphs, you can use the `load_all_graphs` method:
+
+```python
+from wikes_toolkit import WikESToolkit, WikESVersions, WikESGraph
+
+for dataset_name, G in WikESToolkit(save_path="./data").load_all_graphs(WikESGraph, WikESVersions.V1):
     print(f"Dataset [{dataset_name}:")
     print(G.total_entities())
-
 ```
 
 ### Pandas usage
@@ -105,7 +104,7 @@ can change the first parameter of the `load_graph` method to `PandasWikESGraph`:
 from wikes_toolkit import WikESToolkit, PandasWikESGraph, WikESVersions
 
 toolkit = WikESToolkit()
-G = toolkit.load_graph(PandasWikESGraph, WikESVersions.V1.WikiLitArt.SMALL_FULL, entity_formatter=lambda e: e.id)
+G = toolkit.load_graph(PandasWikESGraph, WikESVersions.V1.WikiLitArt.SMALL, entity_formatter=lambda e: e.id)
 
 root_nodes = G.root_entities()
 first_root_node = G.root_entity_ids()[0]
@@ -119,15 +118,11 @@ node = G.fetch_entity('Q303')
 node_degree = G.degree('Q303')
 ground_truths = G.ground_truths(node)
 neighbors = G.neighbors(node)
-# or  G.neighbors('Q303')
 ground_truth_summaries = G.ground_truths(first_root_node)
-# or G.ground_truths('Q303')
-G.mark_triple_as_summary(first_root_node,
-                         (edges.iloc[0]['subject'], edges.iloc[0]['predicate'], edges.iloc[0]['object']))
-# or G.mark_triple_as_summary('Q303', ('Q303', 'P264', 'Q898618'))
-G.mark_triples_as_summaries(first_root_node, first_edge)
-
-print(f"MAP is {toolkit.MAP(G)}")
+G.mark_triple_as_summary(ground_truths.iloc[0].name,
+                         (ground_truths.iloc[0]['subject'], ground_truths.iloc[0]['predicate'], ground_truths.iloc[0]['object']))
+G.mark_triples_as_summaries(ground_truths.iloc[0].name, ground_truths)
+G.clear_summaries()
 
 ```
 
@@ -303,9 +298,6 @@ G.mark_triples_as_summaries(
         ),
     ]
 )
-
-print(f"F1@5 is {toolkit.F1(G)}")
-print(f"F1@10 is {toolkit.F1(G, k=10)}")
 ```
 
 

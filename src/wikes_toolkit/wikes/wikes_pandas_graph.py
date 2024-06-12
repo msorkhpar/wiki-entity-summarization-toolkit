@@ -5,13 +5,13 @@ import networkx as nx
 import pandas as pd
 
 from wikes_toolkit.base.versions import DatasetName
-from wikes_toolkit.wikes import wikes_csv_exporter
-from wikes_toolkit.wikes.wikies_graph_components import WikiBaseWikESGraph
+from wikes_toolkit.wikes import wikes_exporter
+from wikes_toolkit.wikes.wikies_graph_components import WikESBaseGraph
 
 logger = logging.getLogger(__name__)
 
 
-class PandasWikESGraph(WikiBaseWikESGraph):
+class PandasWikESGraph(WikESBaseGraph):
 
     def __init__(self, G: nx.MultiDiGraph, dataset_name: DatasetName):
         super().__init__(G, dataset_name)
@@ -123,11 +123,12 @@ class PandasWikESGraph(WikiBaseWikESGraph):
     def neighbors(self, entity: [str, pd.Series]) -> pd.DataFrame:
         return super().neighbors(entity)
 
-    def export_as_csv(self, path: str):
-        wikes_csv_exporter.export(
+    def export(self, path: str, license_path: str):
+        return wikes_exporter.export(
             path,
-            self._dataset_name.value,
+            license_path,
             self._G,
+            self._dataset_name,
             self._entities,
             self._root_entities,
             self._triples,

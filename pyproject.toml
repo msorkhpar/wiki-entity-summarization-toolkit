@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wikes_toolkit"
-version = "1.0.8"
+version = "1.0.9"
 description = "Toolkit for Wiki-Entity-Summarization datasets (WikES) that helps end-users work with WikES datasets."
 readme = "README.md"
 authors = [{ name = "Mo Sorkhpar", email = "msorkhpar@outlook.com" }]
@@ -22,6 +22,7 @@ dependencies = [
     "tqdm >= 4.62.3",
     "pandas >= 2.2.2",
     "numpy >= 1.26.4",
+    "filehash >= 0.2.dev1",
 ]
 requires-python = ">=3.10"
 

@@ -1,9 +1,12 @@
 import logging
 import os
-import pickle
+import shutil
 
 import networkx as nx
 import pandas as pd
+from filehash import FileHash
+
+from wikes_toolkit.base.versions import DatasetName
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +23,15 @@ def map_column_to_ids(df, column, mapping):
     df[column] = df[column].map(mapping)
 
 
-def export(output_path: str, dataset_name: str, G: nx.MultiDiGraph, entities: pd.DataFrame, root_nodes: pd.DataFrame,
-           triples: pd.DataFrame, predicates: pd.DataFrame, ground_truths: pd.DataFrame):
+def export(
+        output_path: str,
+        license_path: str,
+        G: nx.MultiDiGraph,
+        dataset: DatasetName,
+        entities: pd.DataFrame,
+        root_nodes: pd.DataFrame,
+        triples: pd.DataFrame, predicates: pd.DataFrame, ground_truths: pd.DataFrame) -> str:
+    dataset_name = dataset.value
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     assign_ids(entities, 'entity')
     assign_ids(root_nodes, 'entity')
@@ -45,20 +55,21 @@ def export(output_path: str, dataset_name: str, G: nx.MultiDiGraph, entities: pd
         inplace=True
     )
 
-    output_path_dir = os.path.join(output_path, dataset_name)
-    os.makedirs(output_path_dir, exist_ok=True)
+    output_csv_path = os.path.join(output_path, dataset_name)
+    os.makedirs(output_csv_path, exist_ok=True)
 
-    logger.info(f"Exporting to {output_path_dir}")
+    logger.info(f"Exporting to {output_csv_path}")
 
-    entities.to_csv(os.path.join(output_path_dir, f'{dataset_name}__entities.csv'))
-    predicates.to_csv(os.path.join(output_path_dir, f'{dataset_name}__predicates.csv'))
-    root_nodes.to_csv(os.path.join(output_path_dir, f'{dataset_name}__root_entities.csv'), index=False)
-    triples.to_csv(os.path.join(output_path_dir, f'{dataset_name}__triples.csv'), index=False)
-    ground_truths.to_csv(os.path.join(output_path_dir, f'{dataset_name}__ground_truths.csv'), index=False)
-
+    entities.to_csv(os.path.join(output_csv_path, f'{dataset_name}-entities.csv'))
+    predicates.to_csv(os.path.join(output_csv_path, f'{dataset_name}-predicates.csv'))
+    root_nodes.to_csv(os.path.join(output_csv_path, f'{dataset_name}-root-entities.csv'), index=False)
+    triples.to_csv(os.path.join(output_csv_path, f'{dataset_name}-triples.csv'), index=False)
+    ground_truths.to_csv(os.path.join(output_csv_path, f'{dataset_name}-ground-truths.csv'),
+                         index=False)
+    shutil.copy(license_path, os.path.join(output_csv_path, 'LICENSE'))
+    shutil.make_archive(output_csv_path, 'zip', output_csv_path)
+    shutil.rmtree(output_csv_path)
     nx.write_graphml(G, os.path.join(output_path, f'{dataset_name}.graphml'))
 
-    with open(os.path.join(output_path, f'{dataset_name}.pkl'), 'wb') as f:
-        pickle.dump(G, f)
-
-    logger.debug(f"Exported {dataset_name} to {output_path_dir} successfully.")
+    logger.debug(f"Exported {dataset_name} to {output_csv_path} successfully.")
+    return FileHash('sha256').hash_file(os.path.join(output_path, f'{dataset_name}.zip'))

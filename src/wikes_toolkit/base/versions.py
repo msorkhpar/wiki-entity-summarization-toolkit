@@ -15,3 +15,7 @@ class DatasetName(Enum):
     @abstractmethod
     def get_dataset_url(self) -> str:
         pass
+
+    @abstractmethod
+    def get_version(self) -> str:
+        pass

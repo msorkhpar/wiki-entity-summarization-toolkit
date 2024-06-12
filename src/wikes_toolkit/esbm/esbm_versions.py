@@ -30,12 +30,18 @@ class ESBMVersions(DatasetVersion):
         def get_dataset_url(self):
             return ESBMVersions.get_dataset_url(self)
 
+        def get_version(self) -> str:
+            return 'esbm-1.0'
+
     class V1Dot1(DatasetName):
         DBPEDIA_FULL = 'v1_1_dbpedia_full'
         LMDB_FULL = 'v1_1_lmdb_full'
 
         def get_dataset_url(self):
             return ESBMVersions.get_dataset_url(self)
+
+        def get_version(self) -> str:
+            return 'esbm-1.1'
 
     class V1Dot2(DatasetName):
         DBPEDIA_FULL = 'v1_2_dbpedia_full'
@@ -78,3 +84,6 @@ class ESBMVersions(DatasetVersion):
 
         def get_dataset_url(self):
             return ESBMVersions.get_dataset_url(self)
+
+        def get_version(self) -> str:
+            return 'esbm-1.2'

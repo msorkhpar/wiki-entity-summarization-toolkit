@@ -109,12 +109,6 @@ class ESBMBaseGraph(BaseESGraph):
             root_entity_formatter, entity_formatter, predicate_formatter, triple_formatter
         )
 
-    def ground_truths(self, root_entity: Union[ESBMRootEntity, str]):
-        raise NotImplementedError("Instead of ground_truths, use gold_top5 and gold_top10 methods.")
-
-    def ground_truth_triple_ids(self, root_entity: Union[ESBMRootEntity, str]) -> Set[Tuple[str, str, str]]:
-        raise NotImplementedError("Instead of ground_truths, use gold_top5 and gold_top10 methods.")
-
     @abstractmethod
     def all_gold_top_k(self, k: int) -> Dict[str, List[List[Tuple[str, str, str]]]]:
         pass

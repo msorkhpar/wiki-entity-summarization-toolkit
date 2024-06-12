@@ -6,13 +6,13 @@ import networkx as nx
 
 from wikes_toolkit.base.graph_components import Entity, RootEntity, Triple, Predicate
 from wikes_toolkit.base.versions import DatasetName
-from wikes_toolkit.wikes.wikies_graph_components import WikiBaseWikESGraph, WikiEntity, WikiRootEntity, WikiPredicate, \
+from wikes_toolkit.wikes.wikies_graph_components import WikESBaseGraph, WikiEntity, WikiRootEntity, WikiPredicate, \
     WikiTriple
 
 logger = logging.getLogger(__name__)
 
 
-class WikESGraph(WikiBaseWikESGraph):
+class WikESGraph(WikESBaseGraph):
 
     def __init__(self,
                  G: nx.MultiDiGraph,
