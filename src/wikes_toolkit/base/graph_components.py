@@ -368,7 +368,9 @@ class BaseESGraph(ABC):
             root_entity: Union[RootEntity, str, pd.Series],
             triples: List[Union[Triple, Union[Triple, Tuple[str, str, str], pd.DataFrame]]]
     ):
-        if isinstance(triples, (pd.Series, pd.DataFrame)):
+        if isinstance(triples, (Tuple, pd.Series)):
+            return self.mark_triple_as_summary(root_entity, triples)
+        if isinstance(triples, pd.DataFrame):
             for index, triple in triples.iterrows():
                 self.mark_triple_as_summary(root_entity, triple)
         else:

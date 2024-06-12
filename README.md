@@ -121,7 +121,7 @@ neighbors = G.neighbors(node)
 ground_truth_summaries = G.ground_truths(first_root_node)
 G.mark_triple_as_summary(ground_truths.iloc[0].name,
                          (ground_truths.iloc[0]['subject'], ground_truths.iloc[0]['predicate'], ground_truths.iloc[0]['object']))
-G.mark_triples_as_summaries(ground_truths.iloc[0].name, ground_truths)
+G.mark_triples_as_summaries(node, neighbors.iloc[0:2])
 G.clear_summaries()
 
 ```
