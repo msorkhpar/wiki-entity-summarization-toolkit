@@ -360,6 +360,6 @@ In case you use ESBM datasets, please cite their paper as well ours:
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the CC-BY-4.0 License. See the [LICENSE](LICENSE) file for details.
 Also, you can check ESBM license [here](https://github.com/nju-websoft/ESBM/blob/master/LICENSE.txt)
 or [here](https://opendatacommons.org/licenses/by/1-0/index.html).
