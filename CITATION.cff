@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Javadi"
+  given-names: "Saeedeh"
+- family-names: "Moradan"
+  given-names: "Atefeh"
+- family-names: "Sorkhpar"
+  given-names: "Mohammad"
+  orcid: "https://orcid.org/0009-0006-2856-9225"
+- family-names: "Zaporojets"
+  given-names: "Klim"
+  orcid: "https://orcid.org/0000-0003-4988-978X"
+- family-names: "Mottin"
+  given-names: "Davide"
+  orcid: "https://orcid.org/0000-0001-8256-2258"
+- family-names: "Assent"
+  given-names: "Ira"
+  orcid: "https://orcid.org/0000-0002-1091-9948"
+title: "Wiki Entity Summarization Benchmark"
+version: 1.0.5
+doi: 10.48550/arXiv.2406.08435
+date-released: 2024-06-12
+url: "https://github.com/msorkhpar/wiki-entity-summarization"

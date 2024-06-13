@@ -1,6 +1,5 @@
 # wiki-entity-summarization-toolkit
-
-![PyPI - Status](https://img.shields.io/pypi/status/wikes-toolkit)![PyPI - Downloads](https://img.shields.io/pypi/dm/wikes-toolkit)![GitHub License](https://img.shields.io/github/license/msorkhpar/wiki-entity-summarization-toolkit)
+![PyPI - Status](https://img.shields.io/pypi/status/wikes-toolkit)![PyPI - Downloads](https://img.shields.io/pypi/dm/wikes-toolkit)![GitHub License](https://img.shields.io/github/license/msorkhpar/wiki-entity-summarization-toolkit)[![arXiv](https://img.shields.io/badge/arXiv-2406.08435-B31B1B.svg)](https://doi.org/10.48550/arXiv.2406.08435)
 
 A user-friendly toolkit for the Wiki-Entity-Summarization (WikES) datasets.
 It provides functionalities for downloading, loading, and working with 48 pre-generated graph datasets.
@@ -328,6 +327,36 @@ all_golds = G.all_gold_top_k(5)
 golds = G.gold_top_5(G.root_entities().iloc[0], 4)
 
 ```
+
+
+## Citation
+
+If you use this project in your research, please cite the following paper:
+
+```bibtex
+@misc{javadi2024wiki,
+    title = {Wiki Entity Summarization Benchmark},
+    author = {Saeedeh Javadi and Atefeh Moradan and Mohammad Sorkhpar and Klim Zaporojets and Davide Mottin and Ira Assent},
+    year = {2024},
+    eprint = {2406.08435},
+    archivePrefix = {arXiv},
+    primaryClass = {cs.IR}
+}
+```
+
+In case you use ESBM datasets, please cite their paper as well ours:
+
+```bibtex
+@inproceedings{esbm,
+  author    = {Qingxia Liu and
+                Gong Cheng and
+                Kalpa Gunaratna and
+                Yuzhong Qu},
+  title     = {ESBM: An Entity Summarization Benchmark},
+  booktitle = {ESWC},
+  year      = {2020}
+}
+``` 
 
 ## License
 
