@@ -10,6 +10,7 @@ import pandas as pd
 
 from wikes_toolkit.base.graph_components import Entity, Predicate, Triple, BaseESGraph, RootEntity
 from wikes_toolkit.base.versions import DatasetName
+from wikes_toolkit.esbm.esbm_eval import ESBMSummaryEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,8 @@ class ESBMRootEntity(ESBMEntity):
         return f"ESBMRootEntity(identifier={self.identifier}, eid:{self.eid}, category={self.category})"
 
     def __eq__(self, other):
+        if isinstance(other, str):
+            return self.identifier == other
         return self.identifier == other.identifier
 
     def __hash__(self):
@@ -124,3 +127,27 @@ class ESBMBaseGraph(BaseESGraph):
         List[ESBMTriple], pd.DataFrame
     ]:
         pass
+
+    def f1_score(self, k: int = None):
+        if k is None:
+            raise ValueError("top_k should be provided for ESBM")
+        if k not in [5, 10]:
+            raise ValueError("k should be 5 or 10")
+        return ESBMSummaryEvaluator(
+            super().root_entities(),
+            self.all_gold_top_k(k),
+            self._predicted_summaries,
+            k
+        ).evaluate_f1()
+
+    def map_score(self, k: int = None):
+        if k is None:
+            raise ValueError("top_k should be provided for ESBM")
+        if k not in [5, 10]:
+            raise ValueError("k should be 5 or 10")
+        return ESBMSummaryEvaluator(
+            super().root_entities(),
+            self.all_gold_top_k(k),
+            self._predicted_summaries,
+            k
+        ).evaluate_map()

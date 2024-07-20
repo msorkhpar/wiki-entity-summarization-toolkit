@@ -385,3 +385,11 @@ class BaseESGraph(ABC):
             return self._predicted_summaries[identifier]
         else:
             return list()
+
+    @abstractmethod
+    def f1_score(self, top_k:int = None):
+        pass
+
+    @abstractmethod
+    def map_score(self, top_k: int = None):
+        pass

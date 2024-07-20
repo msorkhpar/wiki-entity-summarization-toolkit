@@ -62,6 +62,12 @@ for root in G.root_entities():
     G.mark_triples_as_summaries(root, G.neighbors(root))
     break
 
+f1 =  G.f1_score()
+f1_5 =  G.f1_score(5)
+f1_10 = G.f1_score(10)
+map = G.map_score()
+map_5 = G.map_score(5)
+map_10 = G.map_score(10)
 """ Output of the above code:
 Neighbors of [Entity(Elvis Presley)]:
 (Elvis Presley)-[military unit]-> (32nd Cavalry Regiment)
@@ -121,6 +127,12 @@ ground_truth_summaries = G.ground_truths(first_root_node)
 G.mark_triple_as_summary(ground_truths.iloc[0].name,
                          (ground_truths.iloc[0]['subject'], ground_truths.iloc[0]['predicate'], ground_truths.iloc[0]['object']))
 G.mark_triples_as_summaries(node, neighbors.iloc[0:2])
+f1 =  G.f1_score()
+f1_5 =  G.f1_score(5)
+f1_10 = G.f1_score(10)
+map = G.map_score()
+map_5 = G.map_score(5)
+map_10 = G.map_score(10)
 G.clear_summaries()
 
 ```
@@ -297,6 +309,11 @@ G.mark_triples_as_summaries(
         ),
     ]
 )
+
+f1_5 =  G.f1_score(5)
+f1_10 = G.f1_score(10)
+map_5 = G.map_score(5)
+map_10 = G.map_score(10)
 ```
 
 

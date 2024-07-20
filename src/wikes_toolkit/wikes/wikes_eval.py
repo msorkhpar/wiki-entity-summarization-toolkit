@@ -21,26 +21,26 @@ class WikESSummaryEvaluator:
             predictions = predictions[:len(ground_truth)]
         return predictions
 
-    def evaluate_f1(self):
+    def evaluate_f1(self, top_k: int = None):
         entity_count = len(self.root_entities)
         dataset_f1_sum = 0
 
         for entity_id in self.root_entities:
             gold_summaries = self.get_summaries(entity_id)
-            algo_summary = self.get_predications(entity_id)
+            algo_summary = self.get_predications(entity_id, top_k)
 
             if algo_summary:
                 dataset_f1_sum += f1(gold_summaries, algo_summary)
 
         return dataset_f1_sum / entity_count
 
-    def evaluate_map(self):
+    def evaluate_map(self, top_k: int = None):
         entity_count = len(self.root_entities)
         dataset_map_sum = 0
 
         for entity_id in self.root_entities:
             gold_summaries = self.get_summaries(entity_id)
-            algo_summary = self.get_predications(entity_id)
+            algo_summary = self.get_predications(entity_id, top_k)
 
             if algo_summary:
                 dataset_map_sum += map(gold_summaries, algo_summary)

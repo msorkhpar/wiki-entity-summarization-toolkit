@@ -10,6 +10,7 @@ import pandas as pd
 
 from wikes_toolkit.base.graph_components import Entity, Predicate, Triple, BaseESGraph
 from wikes_toolkit.base.versions import DatasetName
+from wikes_toolkit.wikes.wikes_eval import WikESSummaryEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,8 @@ class WikiRootEntity(WikiEntity):
         return f"RootEntity(id={self.identifier}, wikidata_label={self.wikidata_label})"
 
     def __eq__(self, other):
+        if isinstance(other, str):
+            return self.identifier == other
         return self.identifier == other.id
 
     def __hash__(self):
@@ -146,3 +149,17 @@ class WikESBaseGraph(BaseESGraph):
                 else:
                     result[root_entity] = self.ground_truth_triple_ids(root_entity)[:k]
         return {root_entity: self.ground_truth_triple_ids(root_entity) for root_entity in self.root_entity_ids()}
+
+    def f1_score(self, k: int = None):
+        return WikESSummaryEvaluator(
+            super().root_entities(),
+            self._ground_truths,
+            self._predicted_summaries
+        ).evaluate_f1(k)
+
+    def map_score(self, k: int = None):
+        return WikESSummaryEvaluator(
+            super().root_entities(),
+            self._ground_truths,
+            self._predicted_summaries
+        ).evaluate_map(k)
