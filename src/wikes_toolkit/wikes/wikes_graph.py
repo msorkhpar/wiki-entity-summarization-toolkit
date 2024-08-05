@@ -114,5 +114,5 @@ class WikESGraph(WikESBaseGraph):
     ]) -> WikiTriple:
         return super().fetch_triple(triple)
 
-    def neighbors(self, entity: Union[Entity, str]) -> List[WikiEntity]:
+    def neighbors(self, entity: Union[Entity, str]) -> List[WikiTriple]:
         return super().neighbors(entity)

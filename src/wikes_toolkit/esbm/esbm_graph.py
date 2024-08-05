@@ -111,7 +111,7 @@ class ESBMGraph(ESBMBaseGraph):
     ]) -> ESBMTriple:
         return super().fetch_triple(triple)
 
-    def neighbors(self, entity: Union[Entity, str]) -> List[Entity]:
+    def neighbors(self, entity: Union[Entity, str]) -> List[ESBMTriple]:
         return super().neighbors(entity)
 
     def all_gold_top_k(self, k: int) -> Dict[str, List[List[Tuple[str, str, str]]]]:

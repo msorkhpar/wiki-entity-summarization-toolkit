@@ -1,8 +1,7 @@
 # wiki-entity-summarization-toolkit
 ![PyPI - Status](https://img.shields.io/pypi/status/wikes-toolkit)![PyPI - Downloads](https://img.shields.io/pypi/dm/wikes-toolkit)![GitHub License](https://img.shields.io/github/license/msorkhpar/wiki-entity-summarization-toolkit)[![arXiv](https://img.shields.io/badge/arXiv-2406.08435-B31B1B.svg)](https://doi.org/10.48550/arXiv.2406.08435)
 
-A user-friendly toolkit for the Wiki-Entity-Summarization (WikES) datasets.
-It provides functionalities for downloading, loading, and working with 48 pre-generated graph datasets.
+A user-friendly toolkit for the Wiki-Entity-Summarization (WikES) and ESBM datasets.
 
 ## Parent project
 
@@ -38,6 +37,7 @@ G = toolkit.load_graph(
 
 root_nodes = G.root_entities()
 nodes = G.entities()
+nx_graph = G._G
 edges = G.triples()
 labels = G.predicates()
 number_of_nodes = G.total_entities()
@@ -109,7 +109,7 @@ can change the first parameter of the `load_graph` method to `PandasWikESGraph`:
 from wikes_toolkit import WikESToolkit, PandasWikESGraph, WikESVersions
 
 toolkit = WikESToolkit()
-G = toolkit.load_graph(PandasWikESGraph, WikESVersions.V1.WikiLitArt.SMALL, entity_formatter=lambda e: e.id)
+G = toolkit.load_graph(PandasWikESGraph, WikESVersions.V1.WikiLitArt.SMALL, entity_formatter=lambda e: e.identifier)
 
 root_nodes = G.root_entities()
 first_root_node = G.root_entity_ids()[0]
@@ -131,6 +131,7 @@ f1 =  G.f1_score()
 f1_5 =  G.f1_score(5)
 f1_10 = G.f1_score(10)
 map = G.map_score()
+map = G.map_score(no_rel=True)
 map_5 = G.map_score(5)
 map_10 = G.map_score(10)
 G.clear_summaries()
@@ -169,7 +170,7 @@ toolkit = WikESToolkit()
 G = toolkit.load_graph(
     ESBMGraph,
     ESBMVersions.V1Dot2.DBPEDIA_FULL,  # or ESBMVersions.V1Dot2.DBPEDIA_TEST_0 or ESBMVersions.V1Dot2.LMDB_TRAIN_1
-    entity_formatter=lambda e: e.id
+    entity_formatter=lambda e: e.identifier
 )
 
 root_nodes = G.root_entities()
@@ -325,7 +326,7 @@ For Pandas version of ESBM datasets, you can use `PandasESBMGraph` instead of `E
 from wikes_toolkit import WikESToolkit, PandasESBMGraph, ESBMVersions
 
 toolkit = WikESToolkit()
-G = toolkit.load_graph(PandasESBMGraph, ESBMVersions.V1Dot2.DBPEDIA_FULL, entity_formatter=lambda e: e.id)
+G = toolkit.load_graph(PandasESBMGraph, ESBMVersions.V1Dot2.DBPEDIA_FULL, entity_formatter=lambda e: e.identifier)
 
 first_root_node_id = G.root_entity_ids()[0]
 root_nodes = G.root_entities()

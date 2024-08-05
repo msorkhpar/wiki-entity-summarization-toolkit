@@ -128,7 +128,7 @@ class ESBMBaseGraph(BaseESGraph):
     ]:
         pass
 
-    def f1_score(self, k: int = None):
+    def f1_score(self, k: int = None, no_rel: bool = False):
         if k is None:
             raise ValueError("top_k should be provided for ESBM")
         if k not in [5, 10]:
@@ -138,9 +138,9 @@ class ESBMBaseGraph(BaseESGraph):
             self.all_gold_top_k(k),
             self._predicted_summaries,
             k
-        ).evaluate_f1()
+        ).evaluate_f1(no_rel)
 
-    def map_score(self, k: int = None):
+    def map_score(self, k: int = None, no_rel: bool = False):
         if k is None:
             raise ValueError("top_k should be provided for ESBM")
         if k not in [5, 10]:
@@ -150,4 +150,4 @@ class ESBMBaseGraph(BaseESGraph):
             self.all_gold_top_k(k),
             self._predicted_summaries,
             k
-        ).evaluate_map()
+        ).evaluate_map(no_rel)

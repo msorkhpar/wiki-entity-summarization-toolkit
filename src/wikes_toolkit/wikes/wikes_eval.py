@@ -1,5 +1,5 @@
 from typing import Dict, List, Tuple
-from wikes_toolkit.base.evaluate import f1, map
+from wikes_toolkit.base.evaluate import f1, map, f1_norel, map_norel
 
 
 class WikESSummaryEvaluator:
@@ -21,7 +21,8 @@ class WikESSummaryEvaluator:
             predictions = predictions[:len(ground_truth)]
         return predictions
 
-    def evaluate_f1(self, top_k: int = None):
+    def evaluate_f1(self, top_k: int = None, no_rel: bool = False):
+        score_function = f1_norel if no_rel else f1
         entity_count = len(self.root_entities)
         dataset_f1_sum = 0
 
@@ -30,11 +31,12 @@ class WikESSummaryEvaluator:
             algo_summary = self.get_predications(entity_id, top_k)
 
             if algo_summary:
-                dataset_f1_sum += f1(gold_summaries, algo_summary)
+                dataset_f1_sum += score_function(gold_summaries, algo_summary)
 
         return dataset_f1_sum / entity_count
 
-    def evaluate_map(self, top_k: int = None):
+    def evaluate_map(self, top_k: int = None, no_rel: bool = False):
+        score_function = map_norel if no_rel else map
         entity_count = len(self.root_entities)
         dataset_map_sum = 0
 
@@ -43,7 +45,7 @@ class WikESSummaryEvaluator:
             algo_summary = self.get_predications(entity_id, top_k)
 
             if algo_summary:
-                dataset_map_sum += map(gold_summaries, algo_summary)
+                dataset_map_sum += score_function(gold_summaries, algo_summary)
 
         avg_map = dataset_map_sum / entity_count
 

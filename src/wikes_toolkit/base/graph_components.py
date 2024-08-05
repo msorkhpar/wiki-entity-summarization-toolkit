@@ -327,6 +327,7 @@ class BaseESGraph(ABC):
             self._predicted_summaries[root_entity].append(triple)
 
     def mark_triple_as_summary(self, root_entity: Union[RootEntity, str, pd.Series], triple: Union[
+        str,
         Triple,
         Tuple[
             Union[Entity, str],
@@ -366,7 +367,7 @@ class BaseESGraph(ABC):
     def mark_triples_as_summaries(
             self,
             root_entity: Union[RootEntity, str, pd.Series],
-            triples: List[Union[Triple, Union[Triple, Tuple[str, str, str], pd.DataFrame]]]
+            triples: List[Union[str, Triple, Union[Triple, Tuple[str, str, str], pd.DataFrame]]]
     ):
         if isinstance(triples, (Tuple, pd.Series)):
             return self.mark_triple_as_summary(root_entity, triples)
@@ -387,9 +388,9 @@ class BaseESGraph(ABC):
             return list()
 
     @abstractmethod
-    def f1_score(self, top_k:int = None):
+    def f1_score(self, top_k: int = None, no_rel: bool = False):
         pass
 
     @abstractmethod
-    def map_score(self, top_k: int = None):
+    def map_score(self, top_k: int = None, no_rel: bool = False):
         pass

@@ -44,12 +44,12 @@ class WikiRootEntity(WikiEntity):
     def __str__(self):
         if self.str_formatter:
             return self.str_formatter(self)
-        return f"RootEntity(id={self.identifier}, wikidata_label={self.wikidata_label})"
+        return f"RootEntity(identifier={self.identifier}, wikidata_label={self.wikidata_label})"
 
     def __eq__(self, other):
         if isinstance(other, str):
             return self.identifier == other
-        return self.identifier == other.id
+        return self.identifier == other.identifier
 
     def __hash__(self):
         return hash(self.identifier)
@@ -150,16 +150,16 @@ class WikESBaseGraph(BaseESGraph):
                     result[root_entity] = self.ground_truth_triple_ids(root_entity)[:k]
         return {root_entity: self.ground_truth_triple_ids(root_entity) for root_entity in self.root_entity_ids()}
 
-    def f1_score(self, k: int = None):
+    def f1_score(self, k: int = None, no_rel: bool = False):
         return WikESSummaryEvaluator(
             super().root_entities(),
             self._ground_truths,
             self._predicted_summaries
-        ).evaluate_f1(k)
+        ).evaluate_f1(k, no_rel)
 
-    def map_score(self, k: int = None):
+    def map_score(self, k: int = None, no_rel: bool = False):
         return WikESSummaryEvaluator(
             super().root_entities(),
             self._ground_truths,
             self._predicted_summaries
-        ).evaluate_map(k)
+        ).evaluate_map(k, no_rel)

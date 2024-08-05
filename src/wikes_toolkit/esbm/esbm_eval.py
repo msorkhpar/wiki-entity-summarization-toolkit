@@ -1,5 +1,5 @@
 from typing import Dict, List, Tuple
-from wikes_toolkit.base.evaluate import f1, map
+from wikes_toolkit.base.evaluate import f1, map, f1_norel, map_norel
 
 
 class ESBMSummaryEvaluator:
@@ -21,14 +21,16 @@ class ESBMSummaryEvaluator:
         predictions = self.predictions.get(entity_id, [])
         return predictions[:self.top_k]
 
-    def evaluate_f1(self):
+    def evaluate_f1(self, no_rel: bool = False):
+        score_function = f1_norel if no_rel else f1
+
         def calculate_average_prf(gold_summaries: List[List[Tuple[str, str, str]]],
                                   algo_summary: List[Tuple[str, str, str]]):
             f1_sum = 0
             user_count = len(gold_summaries)
 
             for gold_summary in gold_summaries:
-                f1_sum += f1(gold_summary, algo_summary)
+                f1_sum += score_function(gold_summary, algo_summary)
 
             return f1_sum / user_count
 
@@ -44,14 +46,16 @@ class ESBMSummaryEvaluator:
 
         return dataset_f1_sum / entity_count
 
-    def evaluate_map(self):
+    def evaluate_map(self, no_rel: bool = False):
+        score_function = map_norel if no_rel else map
+
         def calculate_average_map(gold_summaries: List[List[Tuple[str, str, str]]],
                                   algo_rank: List[Tuple[str, str, str]]):
             map_sum = 0
             user_count = len(gold_summaries)
 
             for gold_summary in gold_summaries:
-                map_score = map(gold_summary, algo_rank)
+                map_score = score_function(gold_summary, algo_rank)
                 map_sum += map_score
 
             return map_sum / user_count
