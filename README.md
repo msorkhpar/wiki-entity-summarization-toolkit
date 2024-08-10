@@ -161,7 +161,7 @@ We also cover ESBM datasets with almost the same functionalities and syntax as b
 converted ESBM datasets to NetworkX format, or if you want to use GraphML formats of this dataset,
 check [ESBM-to-nx-format](https://github.com/msorkhpar/ESBM-to-nx-format) repository.</br>
 
-Here is an example of loading ESBM datasets with this toolkit:
+Here is an example of loading ESBM and ESM_Plus datasets with this toolkit:
 
 ```python
 from wikes_toolkit import WikESToolkit, ESBMGraph, ESBMVersions
@@ -169,7 +169,7 @@ from wikes_toolkit import WikESToolkit, ESBMGraph, ESBMVersions
 toolkit = WikESToolkit()
 G = toolkit.load_graph(
     ESBMGraph,
-    ESBMVersions.V1Dot2.DBPEDIA_FULL,  # or ESBMVersions.V1Dot2.DBPEDIA_TEST_0 or ESBMVersions.V1Dot2.LMDB_TRAIN_1
+    ESBMVersions.Plus.DBPEDIA_FULL,  # ESBMVersions.Plus.DBPEDIA_FULL or ESBMVersions.V1Dot2.DBPEDIA_TEST_0 or ESBMVersions.V1Dot2.LMDB_TRAIN_1
     entity_formatter=lambda e: e.identifier
 )
 

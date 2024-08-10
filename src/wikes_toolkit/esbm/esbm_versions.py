@@ -87,3 +87,13 @@ class ESBMVersions(DatasetVersion):
 
         def get_version(self) -> str:
             return 'esbm-1.2'
+
+    class Plus(DatasetName):
+        DBPEDIA_FULL = 'Plus_dbpedia_full'
+        LMDB_FULL = 'Plus_linkedmdb_full'
+
+        def get_dataset_url(self):
+            return ESBMVersions.get_dataset_url(self)
+
+        def get_version(self) -> str:
+            return 'esbm-plus'
