@@ -318,7 +318,7 @@ map_5 = G.map_score(5)
 map_10 = G.map_score(10)
 ```
 
-#### Using Ranked a NT File as Summary (Legacy Support)
+#### Using Ranked NT File as Summary (Legacy Support)
 
 Although this toolkit can process triples marked with `.nt` ranked files, we don't recommend using this feature as it
 doesn't align with our toolkit's core approach.
