@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wikes_toolkit"
-version = "1.0.19"
+version = "1.0.20"
 description = "Toolkit for Wiki-Entity-Summarization datasets (WikES) that helps end-users work with WikES datasets."
 readme = "README.md"
 authors = [{ name = "Mo Sorkhpar", email = "msorkhpar@outlook.com" }]

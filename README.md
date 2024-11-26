@@ -1,4 +1,5 @@
 # wiki-entity-summarization-toolkit
+
 ![PyPI - Status](https://img.shields.io/pypi/status/wikes-toolkit)![PyPI - Downloads](https://img.shields.io/pypi/dm/wikes-toolkit)![GitHub License](https://img.shields.io/github/license/msorkhpar/wiki-entity-summarization-toolkit)[![arXiv](https://img.shields.io/badge/arXiv-2406.08435-B31B1B.svg)](https://doi.org/10.48550/arXiv.2406.08435)
 
 A user-friendly toolkit for the Wiki-Entity-Summarization (WikES) and ESBM datasets.
@@ -62,8 +63,8 @@ for root in G.root_entities():
     G.mark_triples_as_summaries(root, G.neighbors(root))
     break
 
-f1 =  G.f1_score()
-f1_5 =  G.f1_score(5)
+f1 = G.f1_score()
+f1_5 = G.f1_score(5)
 f1_10 = G.f1_score(10)
 map = G.map_score()
 map_5 = G.map_score(5)
@@ -88,7 +89,6 @@ Ground truth summaries:
 (Elvis Presley)-[genre]-> (pop music)
 """
 ```
-
 
 To load all graphs, you can use the `load_all_graphs` method:
 
@@ -124,11 +124,13 @@ node_degree = G.degree('Q303')
 ground_truths = G.ground_truths(node)
 neighbors = G.neighbors(node)
 ground_truth_summaries = G.ground_truths(first_root_node)
-G.mark_triple_as_summary(ground_truths.iloc[0].name,
-                         (ground_truths.iloc[0]['subject'], ground_truths.iloc[0]['predicate'], ground_truths.iloc[0]['object']))
+G.mark_triple_as_summary(
+    ground_truths.iloc[0].name,
+    (ground_truths.iloc[0]['subject'], ground_truths.iloc[0]['predicate'], ground_truths.iloc[0]['object'])
+)
 G.mark_triples_as_summaries(node, neighbors.iloc[0:2])
-f1 =  G.f1_score()
-f1_5 =  G.f1_score(5)
+f1 = G.f1_score()
+f1_5 = G.f1_score(5)
 f1_10 = G.f1_score(10)
 map = G.map_score()
 map = G.map_score(no_rel=True)
@@ -154,7 +156,6 @@ for dataset, G in toolkit.load_all_graphs(PandasWikESGraph, WikESVersions.V1):
 
 **Note: This method has been implemented for WikESPandasGraph, others yet to be implemented.**
 
-
 ## ESBM
 
 We also cover ESBM datasets with almost the same functionalities and syntax as before. If you want to check how we have
@@ -169,7 +170,7 @@ from wikes_toolkit import WikESToolkit, ESBMGraph, ESBMVersions
 toolkit = WikESToolkit()
 G = toolkit.load_graph(
     ESBMGraph,
-    ESBMVersions.Plus.DBPEDIA_FULL,  # ESBMVersions.Plus.DBPEDIA_FULL or ESBMVersions.V1Dot2.DBPEDIA_TEST_0 or ESBMVersions.V1Dot2.LMDB_TRAIN_1
+    ESBMVersions.Plus.DBPEDIA_FULL, # ESBMVersions.Plus.DBPEDIA_FULL or ESBMVersions.V1Dot2.DBPEDIA_TEST_0 or ESBMVersions.V1Dot2.LMDB_TRAIN_1
     entity_formatter=lambda e: e.identifier
 )
 
@@ -311,12 +312,46 @@ G.mark_triples_as_summaries(
     ]
 )
 
-f1_5 =  G.f1_score(5)
+f1_5 = G.f1_score(5)
 f1_10 = G.f1_score(10)
 map_5 = G.map_score(5)
 map_10 = G.map_score(10)
 ```
 
+#### Using Ranked a NT File as Summary (Legacy Support)
+
+Although this toolkit can process triples marked with `.nt` ranked files, we don't recommend using this feature as it
+doesn't align with our toolkit's core approach.
+
+
+```python
+from wikes_toolkit import WikESToolkit
+from wikes_toolkit.esbm.esbm_graph import ESBMGraph
+from wikes_toolkit.esbm.esbm_versions import ESBMVersions
+
+toolkit = WikESToolkit()
+G = toolkit.load_graph(
+    ESBMGraph,
+    ESBMVersions.V1Dot2.DBPEDIA_FULL,
+    entity_formatter=lambda e: e.identifier,
+)
+
+# Mark summaries for '3WAY_FM'
+G.mark_nt_file_as_summary(
+    1,  # '3WAY_FM' eid
+    './result/dbpedia/1/1_rank.nt'  # .nt file path
+)
+
+# Mark summaries for 'Adrian_Griffin'
+G.mark_nt_file_as_summary(
+    'http://dbpedia.org/resource/Adrian_Griffin',  # ESBM entity name
+    './result/dbpedia/2/2_rank.nt'  # .nt file path
+)
+
+f1_5 = G.f1_score(5)
+f1_10 = G.f1_score(10)
+
+```
 
 ### ESBM Pandas usage
 
@@ -346,7 +381,6 @@ golds = G.gold_top_5(G.root_entities().iloc[0], 4)
 
 ```
 
-
 ## Citation
 
 If you use this project in your research, please cite the following paper:
@@ -366,13 +400,13 @@ In case you use ESBM datasets, please cite their paper as well ours:
 
 ```bibtex
 @inproceedings{esbm,
-  author    = {Qingxia Liu and
-                Gong Cheng and
-                Kalpa Gunaratna and
-                Yuzhong Qu},
-  title     = {ESBM: An Entity Summarization Benchmark},
-  booktitle = {ESWC},
-  year      = {2020}
+    author = {Qingxia Liu and
+ Gong Cheng and
+ Kalpa Gunaratna and
+ Yuzhong Qu},
+    title = {ESBM: An Entity Summarization Benchmark},
+    booktitle = {ESWC},
+    year = {2020}
 }
 ``` 
 

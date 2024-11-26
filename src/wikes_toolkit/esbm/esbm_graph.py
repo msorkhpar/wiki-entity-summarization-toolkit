@@ -1,4 +1,5 @@
 import logging
+import os
 from collections import defaultdict
 from typing import Union, List, Optional, Dict, Tuple
 
@@ -8,6 +9,7 @@ from wikes_toolkit.base.graph_components import Entity, RootEntity, Triple, Pred
 from wikes_toolkit.base.versions import DatasetName
 from wikes_toolkit.esbm.esbm_graph_components import ESBMBaseGraph, ESBMEntity, ESBMTriple, ESBMPredicate, \
     ESBMRootEntity
+from wikes_toolkit.esbm.esbm_nt_file_reader import extract_triples
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +97,13 @@ class ESBMGraph(ESBMBaseGraph):
     def fetch_entity(self, entity: Union[Entity, str]) -> ESBMEntity:
         return super().fetch_entity(entity)
 
-    def fetch_root_entity(self, entity: Union[RootEntity, str]) -> ESBMRootEntity:
+    def fetch_root_entity(self, entity: Union[RootEntity, str, int]) -> ESBMRootEntity:
+        if isinstance(entity, int):
+            for r in super().root_entities():
+                if r.eid == entity:
+                    return r
+            raise ValueError(f"Entity with eid: {entity} not found in root entities.")
+
         return super().fetch_root_entity(entity)
 
     def fetch_predicate(self, predicate: Union[Predicate, str]) -> ESBMPredicate:
@@ -134,3 +142,12 @@ class ESBMGraph(ESBMBaseGraph):
         if annotator_index < 0 or annotator_index > 5:
             raise ValueError("Annotator index should be between 0 and 5.")
         return self._gold_top_10[self.fetch_root_entity_id(root_entity)][annotator_index]
+
+    def mark_nt_file_as_summary(self, root_entity: Union[ESBMRootEntity, str, int], nt_file_path):
+        if not os.path.exists(nt_file_path):
+            raise ValueError(f"N-Triples summary file does not exist under path {nt_file_path}")
+
+        root_entity = self.fetch_root_entity(root_entity)
+        triples = extract_triples(nt_file_path)
+        triples = [self.fetch_triple(t) for t in triples]
+        super().mark_triples_as_summaries(root_entity, triples)

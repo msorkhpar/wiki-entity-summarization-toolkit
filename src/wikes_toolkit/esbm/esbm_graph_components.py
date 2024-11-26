@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional, Union, Tuple, Set, Callable, List, Dict
+from typing import Optional, Union, Tuple, Callable, List, Dict
 
 import networkx as nx
 import pandas as pd
@@ -33,7 +33,7 @@ class ESBMEntity(Entity):
 
 
 @dataclass
-class ESBMRootEntity(ESBMEntity):
+class ESBMRootEntity(ESBMEntity, RootEntity):
     eid: int = None
     category: Optional[str] = None
     str_formatter: Optional[Callable[[ESBMRootEntity], str]] = field(default=None, repr=False)
