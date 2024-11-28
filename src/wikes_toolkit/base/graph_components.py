@@ -192,14 +192,14 @@ class BaseESGraph(ABC):
                     entity = entity.name
                 entity = self._entities.loc[entity]
             except KeyError:
-                raise ValueError(f"Entity with identifier: {entity} not found.")
+                raise ValueError(f"Entity with identifier: '{entity}' not found.")
             return entity
         if isinstance(entity, self._root_type) or isinstance(entity, self._entity_type):
             identifier = entity.identifier
         else:
             identifier = entity
         if identifier not in self._entities:
-            raise ValueError(f"Entity with identifier: {identifier} not found.")
+            raise ValueError(f"Entity with identifier: '{identifier}' not found.")
         return self._entities[identifier]
 
     @abstractmethod
@@ -210,7 +210,7 @@ class BaseESGraph(ABC):
                     entity = entity.name
                 entity = self._root_entities.loc[entity]
             except KeyError:
-                raise ValueError(f"Entity with identifier: {entity} is not a root entity.")
+                raise ValueError(f"Entity with identifier: '{entity}' is not a root entity.")
             return entity
         else:
             if isinstance(entity, self._root_type) or isinstance(entity, self._entity_type):
@@ -218,7 +218,7 @@ class BaseESGraph(ABC):
             else:
                 identifier = entity
             if identifier not in self._root_entities:
-                raise ValueError(f"Entity with identifier: {identifier} not found in root entities.")
+                raise ValueError(f"Entity with identifier: '{identifier}' not found in root entities.")
             return self._root_entities[identifier]
 
     def fetch_root_entity_id(self, entity: Union[RootEntity, str, pd.Series]) -> str:
@@ -232,7 +232,7 @@ class BaseESGraph(ABC):
                     predicate = predicate.name
                 predicate = self._predicates.loc[predicate]
             except KeyError:
-                raise ValueError(f"Predicate with predicate_id: {predicate} not found")
+                raise ValueError(f"Predicate with predicate_id: '{predicate}' not found")
             return predicate
         else:
             if isinstance(predicate, self._predicate_type):
@@ -241,7 +241,7 @@ class BaseESGraph(ABC):
                 predicate_id = predicate
 
             if predicate_id not in self._predicates:
-                raise ValueError(f"Predicate with predicate_id: {predicate_id} not found")
+                raise ValueError(f"Predicate with predicate_id: '{predicate_id}' not found")
             return self._predicates[predicate_id]
 
     @abstractmethod
@@ -346,7 +346,7 @@ class BaseESGraph(ABC):
 
             self._add_predication_if_not_exists(identifier, (triple['subject'], triple['predicate'], triple['object']))
         else:
-            root_entity_id = self.fetch_entity(root_entity).identifier
+            root_entity_id = self.fetch_root_entity(root_entity).identifier
             triple = self.fetch_triple(triple)
             if root_entity_id not in {triple.subject_entity.identifier, triple.object_entity.identifier}:
                 raise ValueError(

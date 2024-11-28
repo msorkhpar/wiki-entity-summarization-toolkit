@@ -45,10 +45,10 @@ def _parse_nt_line(line):
                 return URIRef(term)
 
         return parse_term(subject), URIRef(predicate.strip('<>')), parse_term(object_)
-    return None
+    else:
+        raise ValueError(f"'{line}' could not be parsed!")
 
-
-def _convert_line_to_triple(line: str):
+def convert_line_to_triple(line: str):
     triple = _parse_nt_line(line)
     subject = _get_value(triple[0])
     predicate = _get_value(triple[1])
@@ -63,6 +63,6 @@ def extract_triples(nt_file_path: str) -> List[Tuple[str, str, str]]:
 
     for line in lines:
         result.append(
-            _convert_line_to_triple(line)
+            convert_line_to_triple(line)
         )
     return result

@@ -12,7 +12,7 @@ import pandas as pd
 from wikes_toolkit.base.graph_components import Entity, Predicate, Triple, BaseESGraph, RootEntity
 from wikes_toolkit.base.versions import DatasetName
 from wikes_toolkit.esbm.esbm_eval import ESBMSummaryEvaluator
-from wikes_toolkit.esbm.esbm_nt_file_reader import extract_triples
+from wikes_toolkit.esbm.esbm_nt_file_reader import extract_triples, convert_line_to_triple
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +129,19 @@ class ESBMBaseGraph(BaseESGraph):
         List[ESBMTriple], pd.DataFrame
     ]:
         pass
+
+    def fetch_triple(self, triple: Union[
+        str,
+        Triple, Tuple[
+            Union[Entity, str],
+            Union[Predicate, str],
+            Union[Entity, str]
+        ],
+        pd.Series
+    ]):
+        if isinstance(triple, str):
+            triple = convert_line_to_triple(triple)
+        return super().fetch_triple(triple)
 
     def fetch_root_entity(self, entity: Union[RootEntity, str, int]) -> Union[ESBMRootEntity, pd.Series]:
         if isinstance(entity, int):
