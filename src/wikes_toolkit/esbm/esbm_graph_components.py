@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Optional, Union, Tuple, Callable, List, Dict
@@ -11,6 +12,7 @@ import pandas as pd
 from wikes_toolkit.base.graph_components import Entity, Predicate, Triple, BaseESGraph, RootEntity
 from wikes_toolkit.base.versions import DatasetName
 from wikes_toolkit.esbm.esbm_eval import ESBMSummaryEvaluator
+from wikes_toolkit.esbm.esbm_nt_file_reader import extract_triples
 
 logger = logging.getLogger(__name__)
 
@@ -128,13 +130,27 @@ class ESBMBaseGraph(BaseESGraph):
     ]:
         pass
 
+    def fetch_root_entity(self, entity: Union[RootEntity, str, int]) -> Union[ESBMRootEntity, pd.Series]:
+        if isinstance(entity, int):
+            root_entities = self.root_entities()
+            if isinstance(root_entities, list):
+                for r in root_entities:
+                    if r.eid == entity:
+                        return r
+                raise ValueError(f"Entity with eid: {entity} not found in root entities.")
+            else:
+                target = root_entities[root_entities['eid'] == entity]
+                if not target.empty:
+                    return target.iloc[0]
+        return super().fetch_root_entity(entity)
+
     def f1_score(self, k: int = None, no_rel: bool = False):
         if k is None:
             raise ValueError("top_k should be provided for ESBM")
         if k not in [5, 10]:
             raise ValueError("k should be 5 or 10")
         return ESBMSummaryEvaluator(
-            super().root_entities(),
+            super().root_entity_ids(),
             self.all_gold_top_k(k),
             self._predicted_summaries,
             k
@@ -146,8 +162,17 @@ class ESBMBaseGraph(BaseESGraph):
         if k not in [5, 10]:
             raise ValueError("k should be 5 or 10")
         return ESBMSummaryEvaluator(
-            super().root_entities(),
+            super().root_entity_ids(),
             self.all_gold_top_k(k),
             self._predicted_summaries,
             k
         ).evaluate_map(no_rel)
+
+    def mark_nt_file_as_summary(self, root_entity: Union[ESBMRootEntity, str, int], nt_file_path):
+        if not os.path.exists(nt_file_path):
+            raise ValueError(f"N-Triples summary file does not exist under path {nt_file_path}")
+
+        root_entity = self.fetch_root_entity(root_entity)
+        triples = extract_triples(nt_file_path)
+        triples = [self.fetch_triple(t) for t in triples]
+        super().mark_triples_as_summaries(root_entity, triples)

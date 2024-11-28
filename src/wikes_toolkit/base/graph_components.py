@@ -374,9 +374,11 @@ class BaseESGraph(ABC):
         if isinstance(triples, pd.DataFrame):
             for index, triple in triples.iterrows():
                 self.mark_triple_as_summary(root_entity, triple)
-        else:
+        elif isinstance(triples, list):
             for triple in triples:
                 self.mark_triple_as_summary(root_entity, triple)
+        else:
+            raise ValueError("Please pass a valid triple list")
 
     def predications(self) -> Dict[str, List[Tuple[str, str, str]]]:
         return self._predicted_summaries

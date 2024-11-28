@@ -133,7 +133,7 @@ f1 = G.f1_score()
 f1_5 = G.f1_score(5)
 f1_10 = G.f1_score(10)
 map = G.map_score()
-map = G.map_score(no_rel=True)
+map_norel = G.map_score(no_rel=True)
 map_5 = G.map_score(5)
 map_10 = G.map_score(10)
 G.clear_summaries()
@@ -170,7 +170,7 @@ from wikes_toolkit import WikESToolkit, ESBMGraph, ESBMVersions
 toolkit = WikESToolkit()
 G = toolkit.load_graph(
     ESBMGraph,
-    ESBMVersions.Plus.DBPEDIA_FULL, # ESBMVersions.Plus.DBPEDIA_FULL or ESBMVersions.V1Dot2.DBPEDIA_TEST_0 or ESBMVersions.V1Dot2.LMDB_TRAIN_1
+    ESBMVersions.Plus.DBPEDIA_FULL,  # or ESBMVersions.Plus.DBPEDIA_FULL, ESBMVersions.V1Dot2.LMDB_TRAIN_1, etc.
     entity_formatter=lambda e: e.identifier
 )
 
@@ -185,9 +185,7 @@ node = G.fetch_entity('http://dbpedia.org/resource/Adrian_Griffin')
 node_degree = G.degree('http://dbpedia.org/resource/Adrian_Griffin')
 gold_top5_0 = G.gold_top_5(node, 0)
 gold_top10_0 = G.gold_top_10(node, 0)
-neighbors = G.neighbors(node)
-# or  G.neighbors('http://dbpedia.org/resource/Adrian_Griffin')
-
+neighbors = G.neighbors(node)  # or G.neighbors('http://dbpedia.org/resource/Adrian_Griffin')
 
 G.mark_triples_as_summaries(
     "http://dbpedia.org/resource/3WAY_FM",
@@ -248,12 +246,11 @@ G.clear_summaries()
 
 G.mark_triples_as_summaries(
     "http://dbpedia.org/resource/3WAY_FM",
-    [
-        (
-            'http://dbpedia.org/resource/3WAY_FM',
-            'http://purl.org/dc/terms/subject',
-            'http://dbpedia.org/resource/Category:Radio_stations_in_Victoria'
-        )]
+    [(
+        'http://dbpedia.org/resource/3WAY_FM',
+        'http://purl.org/dc/terms/subject',
+        'http://dbpedia.org/resource/Category:Radio_stations_in_Victoria'
+    )]
 )
 
 G.mark_triples_as_summaries(
@@ -325,13 +322,11 @@ doesn't align with our toolkit's core approach.
 
 
 ```python
-from wikes_toolkit import WikESToolkit
-from wikes_toolkit.esbm.esbm_graph import ESBMGraph
-from wikes_toolkit.esbm.esbm_versions import ESBMVersions
+from wikes_toolkit import WikESToolkit, PandasESBMGraph, ESBMGraph, ESBMVersions
 
 toolkit = WikESToolkit()
 G = toolkit.load_graph(
-    ESBMGraph,
+    ESBMGraph, # or PandasESBMGraph
     ESBMVersions.V1Dot2.DBPEDIA_FULL,
     entity_formatter=lambda e: e.identifier,
 )
@@ -359,6 +354,7 @@ For Pandas version of ESBM datasets, you can use `PandasESBMGraph` instead of `E
 
 ```python
 from wikes_toolkit import WikESToolkit, PandasESBMGraph, ESBMVersions
+import pandas as pd
 
 toolkit = WikESToolkit()
 G = toolkit.load_graph(PandasESBMGraph, ESBMVersions.V1Dot2.DBPEDIA_FULL, entity_formatter=lambda e: e.identifier)
@@ -378,6 +374,19 @@ gold_top10_0 = G.gold_top_10(node, 0)
 neighbors = G.neighbors(node)
 all_golds = G.all_gold_top_k(5)
 golds = G.gold_top_5(G.root_entities().iloc[0], 4)
+
+G.mark_triples_as_summaries(
+    "http://dbpedia.org/resource/Adrian_Griffin",
+    pd.Series(
+        [
+            'http://dbpedia.org/resource/Adrian_Griffin',
+            'http://dbpedia.org/ontology/activeYearsEndYear',
+            '2008'
+        ],
+        index=['subject', 'predicate', 'object']
+    )
+)
+f1_5 = G.f1_score(5)
 
 ```
 

@@ -136,7 +136,7 @@ class PandasESBMGraph(ESBMBaseGraph):
         result: Dict[str, List[List[Tuple[str, str, str]]]] = dict()
         gold_top_k = self._gold_top_5 if k == 5 else self._gold_top_10
         all_golds = gold_top_k.groupby(['root_entity', 'annotator_index']).apply(
-            lambda x: tuple(x[['subject', 'predicate', 'object']].values.tolist())
+            lambda x: [tuple(r) for r in x[['subject', 'predicate', 'object']].values.tolist()]
         ).groupby('root_entity').agg(list).to_dict()
         for index, row in self._root_entities.iterrows():
             result[str(index)] = all_golds[index]
