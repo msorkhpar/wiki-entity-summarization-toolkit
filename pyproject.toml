@@ -23,6 +23,7 @@ dependencies = [
     "pandas >= 2.2.2, <3.0",
     "numpy >= 1.26.4, <2.0",
     "filehash >= 0.2.dev1, <0.3",
+    "rdflib >= 7.0.0",
 ]
 requires-python = ">=3.10"
 
